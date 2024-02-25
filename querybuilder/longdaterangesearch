@@ -1,0 +1,89 @@
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+@RestController
+public class DocumentController {
+
+    private final DocumentService documentService;
+
+    public DocumentController(DocumentService documentService) {
+        this.documentService = documentService;
+    }
+
+    @GetMapping("/api/documents/search")
+    public List<Document> searchDocumentsByDateRange(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") long startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") long endDate
+    ) throws ParseException {
+        return documentService.searchDocumentsByDateRange(startDate, endDate);
+    }
+}
+
+
+
+
+import org.springframework.stereotype.Service;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Service
+public class DocumentService {
+
+    private final DocumentSearcher documentSearcher;
+
+    public DocumentService(DocumentSearcher documentSearcher) {
+        this.documentSearcher = documentSearcher;
+    }
+
+    public List<Document> searchDocumentsByDateRange(long startDate, long endDate) throws ParseException {
+        return documentSearcher.searchDocumentsByDateRange(startDate, endDate);
+    }
+}
+
+
+
+import org.springframework.stereotype.Component;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Component
+public class DocumentSearcher {
+
+    private final List<Document> mockDocuments;
+
+    public DocumentSearcher() {
+        // Mocking some documents for demonstration
+        mockDocuments = new ArrayList<>();
+        try {
+            mockDocuments.add(new Document("Document 1", new Date(1640995200000L))); // 2022-01-01
+            mockDocuments.add(new Document("Document 2", new Date(1644854400000L))); // 2022-02-15
+            mockDocuments.add(new Document("Document 3", new Date(1648598400000L))); // 2022-03-30
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Document> searchDocumentsByDateRange(long startDate, long endDate) throws ParseException {
+        List<Document> result = new ArrayList<>();
+        for (Document document : mockDocuments) {
+            Date documentDate = document.getCreated();
+            if (documentDate.getTime() >= startDate && documentDate.getTime() <= endDate) {
+                result.add(document);
+            }
+        }
+        return result;
+    }
+}
