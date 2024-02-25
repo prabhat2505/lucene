@@ -1,0 +1,73 @@
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.*;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.index.DirectoryReader;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class LuceneApiExample {
+
+    public static void main(String[] args) throws IOException, ParseException {
+        // Indexing sample documents
+        Directory directory = new RAMDirectory();
+        IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
+        IndexWriter writer = new IndexWriter(directory, config);
+
+        addDocument(writer, "Document 1", "CSV", true, "2022-01-01T12:30:00");
+        addDocument(writer, "Document 2", "CSV", false, "2022-02-15T14:45:00");
+        addDocument(writer, "Document 3", "XML", true, "2022-03-30T10:00:00");
+
+        writer.close();
+
+        // Searching and sorting
+        searchAndSort(directory, "CSV", true);
+    }
+
+    private static void addDocument(IndexWriter writer, String title, String type, boolean enabled, String dateTimeStr)
+            throws ParseException, IOException {
+        Document document = new Document();
+        document.add(new Field("title", title, Field.Store.YES, Field.Index.ANALYZED));
+        document.add(new Field("type", type, Field.Store.YES, Field.Index.NOT_ANALYZED));
+        document.add(new Field("enabled", String.valueOf(enabled), Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        Date dateTime = dateFormat.parse(dateTimeStr);
+        long dateTimeInMillis = dateTime.getTime();
+        document.add(new LongField("created", dateTimeInMillis, Field.Store.YES));
+
+        writer.addDocument(document);
+    }
+
+    private static void searchAndSort(Directory directory, String type, boolean enabled) throws IOException {
+        try (IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory))) {
+            // Create a BooleanQuery with two TermQueries for "type" and "enabled"
+            BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
+            booleanQuery.add(new TermQuery(new Term("type", type)), BooleanClause.Occur.MUST);
+            booleanQuery.add(new TermQuery(new Term("enabled", String.valueOf(enabled))), BooleanClause.Occur.MUST);
+
+            // Create a Sort for the "created" field in descending order
+            Sort sort = new Sort(new SortField("created", SortField.Type.LONG, true));
+
+            // Execute the search with sorting
+            TopDocs topDocs = searcher.search(booleanQuery.build(), 10, sort);
+
+            // Iterate through the results
+            System.out.println("Documents matching the query:");
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document document = searcher.doc(scoreDoc.doc);
+                System.out.println("Title: " + document.get("title") +
+                        ", Type: " + document.get("type") +
+                        ", Enabled: " + document.get("enabled") +
+                        ", Created: " + new Date(Long.parseLong(document.get("created"))));
+            }
+        }
+    }
+}
