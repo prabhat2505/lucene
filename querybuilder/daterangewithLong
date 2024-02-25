@@ -1,0 +1,69 @@
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.*;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.*;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.index.DirectoryReader;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class LuceneDateTimeStorage {
+
+    public static void main(String[] args) throws IOException, ParseException {
+        // Create an index
+        Directory directory = new RAMDirectory();
+        IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
+        IndexWriter writer = new IndexWriter(directory, config);
+
+        // Add documents with date information
+        addDocument(writer, "Document 1", "2022-01-01T12:30:00");
+        addDocument(writer, "Document 2", "2022-02-15T14:45:00");
+        addDocument(writer, "Document 3", "2022-03-30T10:00:00");
+
+        writer.close();
+
+        // Search for documents within a date range
+        searchDateRange(directory, "2022-02-01T00:00:00", "2022-03-01T23:59:59");
+    }
+
+    private static void addDocument(IndexWriter writer, String title, String dateTimeStr) throws ParseException, IOException {
+        Document document = new Document();
+        document.add(new Field("title", title, Field.Store.YES, Field.Index.ANALYZED));
+
+        // Parse the date-time string and index it as a long value (milliseconds since epoch)
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        Date dateTime = dateFormat.parse(dateTimeStr);
+        long dateTimeInMillis = dateTime.getTime();
+        document.add(new NumericDocValuesField("dateTimeField", dateTimeInMillis));
+        document.add(new LongPoint("dateTimeField", dateTimeInMillis));
+
+        writer.addDocument(document);
+    }
+
+    private static void searchDateRange(Directory directory, String startDateStr, String endDateStr)
+            throws IOException, org.apache.lucene.queryparser.classic.ParseException {
+        // Parse start and end date-times
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        Date startDate = dateFormat.parse(startDateStr);
+        Date endDate = dateFormat.parse(endDateStr);
+
+        // Create a query for the date-time range
+        Query query = LongPoint.newRangeQuery("dateTimeField", startDate.getTime(), endDate.getTime());
+
+        // Search for documents within the date-time range
+        try (IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory))) {
+            TopDocs topDocs = searcher.search(query, 10);
+
+            System.out.println("Documents within the date-time range:");
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document document = searcher.doc(scoreDoc.doc);
+                System.out.println("Title: " + document.get("title") + ", Date-Time: " + dateFormat.format(new Date(Long.parseLong(document.get("dateTimeField")))));
+            }
+        }
+    }
+}
