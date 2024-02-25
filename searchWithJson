@@ -65,4 +65,157 @@ public class DocumentController {
     }
 }
 3. Create a SearchRequest class to represent the JSON request body:
+---------------------------------------------------------------------
+import java.util.List;
+import java.util.Map;
+
+public class SearchRequest {
+    private Map<String, Object> query;
+    private List<Map<String, Map<String, String>>> sort;
+
+    // Constructors, getters, and setters
+}
+
+4. Create a DocumentService to handle business logic:
+import org.springframework.stereotype.Service;
+
+import java.text.ParseException;
+import java.util.List;
+
+@Service
+public class DocumentService {
+
+    private final DocumentSearcher documentSearcher;
+
+    public DocumentService(DocumentSearcher documentSearcher) {
+        this.documentSearcher = documentSearcher;
+    }
+
+    public List<Document> searchDocuments(SearchRequest searchRequest) throws ParseException {
+        return documentSearcher.searchAndSort(searchRequest);
+    }
+}
+
+5. Create a DocumentSearcher to handle searching logic:
+import org.springframework.stereotype.Component;
+
+import java.text.ParseException;
+import java.util.List;
+
+@Component
+public class DocumentSearcher {
+
+    public List<Document> searchAndSort(SearchRequest searchRequest) throws ParseException {
+        // Implement search and sorting logic using the provided searchRequest
+        // Use Lucene or any other search mechanism
+        // Return a list of Document objects
+        return List.of();
+    }
+}
+
+
+
+import org.springframework.stereotype.Component;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+@Component
+public class DocumentSearcher {
+
+    private final List<Document> mockDocuments;
+
+    public DocumentSearcher() {
+        // Mocking some documents for demonstration
+        mockDocuments = new ArrayList<>();
+        try {
+            mockDocuments.add(new Document("Document 1", "CSV", true, "2022-01-01T12:30:00"));
+            mockDocuments.add(new Document("Document 2", "CSV", false, "2022-02-15T14:45:00"));
+            mockDocuments.add(new Document("Document 3", "XML", true, "2022-03-30T10:00:00"));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Document> searchAndSort(SearchRequest searchRequest) throws ParseException {
+        List<Document> filteredDocuments = filterDocuments(searchRequest.getQuery(), mockDocuments);
+        return sortDocuments(searchRequest.getSort(), filteredDocuments);
+    }
+
+    private List<Document> filterDocuments(Map<String, Object> query, List<Document> documents) throws ParseException {
+        List<Document> filteredDocuments = new ArrayList<>();
+
+        for (Document document : documents) {
+            boolean isMatch = evaluateQuery(query, document);
+            if (isMatch) {
+                filteredDocuments.add(document);
+            }
+        }
+
+        return filteredDocuments;
+    }
+
+    private boolean evaluateQuery(Map<String, Object> query, Document document) throws ParseException {
+        if (query.containsKey("bool")) {
+            Map<String, Object> boolQuery = (Map<String, Object>) query.get("bool");
+
+            if (boolQuery.containsKey("must")) {
+                List<Map<String, Object>> mustClauses = (List<Map<String, Object>>) boolQuery.get("must");
+
+                for (Map<String, Object> clause : mustClauses) {
+                    String termField = clause.keySet().iterator().next();
+                    Map<String, String> term = (Map<String, String>) clause.get(termField);
+
+                    if (!evaluateTerm(termField, term, document)) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean evaluateTerm(String field, Map<String, String> term, Document document) throws ParseException {
+        if (term.containsKey("term")) {
+            String expectedValue = term.get("term");
+            String actualValue = getFieldValue(field, document);
+            return expectedValue.equals(actualValue);
+        }
+
+        return false;
+    }
+
+    private String getFieldValue(String field, Document document) throws ParseException {
+        switch (field) {
+            case "type":
+                return document.getType();
+            case "enabled":
+                return String.valueOf(document.isEnabled());
+            default:
+                return null;
+        }
+    }
+
+    private List<Document> sortDocuments(List<Map<String, Map<String, String>>> sort, List<Document> documents) {
+        if (sort != null && !sort.isEmpty()) {
+            Map<String, Map<String, String>> sortField = sort.get(0);
+            String fieldName = sortField.keySet().iterator().next();
+            Map<String, String> order = sortField.get(fieldName);
+
+            if ("desc".equals(order.get("order"))) {
+                documents.sort(Comparator.comparing(Document::getCreated).reversed());
+            } else {
+                documents.sort(Comparator.comparing(Document::getCreated));
+            }
+        }
+
+        return documents;
+    }
+}
 
