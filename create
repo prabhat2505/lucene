@@ -1,0 +1,49 @@
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongField;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class DocumentIndexer {
+    private final Directory directory;
+
+    public DocumentIndexer() {
+        this.directory = new RAMDirectory();
+    }
+
+    public void indexDocuments() throws IOException, ParseException {
+        IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
+        try (IndexWriter writer = new IndexWriter(directory, config)) {
+            addDocument(writer, "Document 1", "CSV", true, "2022-01-01T12:30:00");
+            addDocument(writer, "Document 2", "CSV", false, "2022-02-15T14:45:00");
+            addDocument(writer, "Document 3", "XML", true, "2022-03-30T10:00:00");
+        }
+    }
+
+    private void addDocument(IndexWriter writer, String title, String type, boolean enabled, String dateTimeStr)
+            throws ParseException, IOException {
+        Document document = new Document();
+        document.add(new Field("title", title, Field.Store.YES, Field.Index.ANALYZED));
+        document.add(new Field("type", type, Field.Store.YES, Field.Index.NOT_ANALYZED));
+        document.add(new Field("enabled", String.valueOf(enabled), Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        Date dateTime = dateFormat.parse(dateTimeStr);
+        long dateTimeInMillis = dateTime.getTime();
+        document.add(new LongField("created", dateTimeInMillis, Field.Store.YES));
+
+        writer.addDocument(document);
+    }
+
+    public Directory getDirectory() {
+        return directory;
+    }
+}
