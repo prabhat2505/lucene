@@ -1,0 +1,106 @@
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.text.ParseException;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/documents")
+public class DocumentController {
+
+    private final DocumentService documentService;
+
+    public DocumentController(DocumentService documentService) {
+        this.documentService = documentService;
+    }
+
+    @GetMapping
+    public List<Document> searchDocuments(
+            @RequestParam String type,
+            @RequestParam boolean enabled
+    ) throws ParseException {
+        return documentService.searchDocuments(type, enabled);
+    }
+}
+import org.springframework.stereotype.Service;
+
+import java.text.ParseException;
+import java.util.List;
+
+@Service
+public class DocumentService {
+
+    private final DocumentIndexer documentIndexer;
+    private final DocumentSearcher documentSearcher;
+
+    public DocumentService(DocumentIndexer documentIndexer, DocumentSearcher documentSearcher) {
+        this.documentIndexer = documentIndexer;
+        this.documentSearcher = documentSearcher;
+    }
+
+    public List<Document> searchDocuments(String type, boolean enabled) throws ParseException {
+        return documentSearcher.searchAndSort(type, enabled);
+    }
+
+      
+
+
+}
+
+//Search
+    import org.apache.lucene.document.Document;
+import org.apache.lucene.search.*;
+import java.io.IOException;
+
+public class DocumentSearcher {
+    private final IndexSearcher searcher;
+
+    public DocumentSearcher(Directory directory) throws IOException {
+        this.searcher = new IndexSearcher(DirectoryReader.open(directory));
+    }
+
+    public void searchAndSort(String type, boolean enabled) throws IOException {
+        BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
+        booleanQuery.add(new TermQuery(new Term("type", type)), BooleanClause.Occur.MUST);
+        booleanQuery.add(new TermQuery(new Term("enabled", String.valueOf(enabled))), BooleanClause.Occur.MUST);
+
+        Sort sort = new Sort(new SortField("created", SortField.Type.LONG, true));
+
+        TopDocs topDocs = searcher.search(booleanQuery.build(), 10, sort);
+
+        System.out.println("Documents matching the query:");
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            Document document = searcher.doc(scoreDoc.doc);
+            System.out.println("Title: " + document.get("title") +
+                    ", Type: " + document.get("type") +
+                    ", Enabled: " + document.get("enabled") +
+                    ", Created: " + new Date(Long.parseLong(document.get("created"))));
+        }
+    }
+}
+        //----------------------------------------
+
+    
+ import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.text.ParseException;
+
+@Component
+public class DocumentIndexer {
+
+    private final DocumentSearcher documentSearcher;
+
+    public DocumentIndexer(DocumentSearcher documentSearcher) {
+        this.documentSearcher = documentSearcher;
+    }
+
+    @PostConstruct
+    public void indexDocuments() throws IOException, ParseException {
+        // Index documents
+        // You can add logic to index documents during application startup
+    }
+}
