@@ -1,0 +1,62 @@
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
+
+public class QueryBuilder {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(QueryBuilder.class);
+
+    public Query buildQuery(Map<String, Object> queryMap) {
+        LOGGER.info("Building query for map: {}", queryMap);
+
+        BooleanQuery.Builder qBuilder = new BooleanQuery.Builder();
+        BooleanClause.Occur booleanClauseOccur = BooleanClause.Occur.MUST; // Default value
+
+        for (Map.Entry<String, Object> entry : queryMap.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase("bool")) {
+                qBuilder.add(buildQuery((Map<String, Object>) entry.getValue()), booleanClauseOccur);
+            } else if (entry.getKey().equalsIgnoreCase("must") || entry.getKey().equalsIgnoreCase("must_not") || entry.getKey().equalsIgnoreCase("should")) {
+                switch (entry.getKey().toUpperCase()) {
+                    case "MUST":
+                        booleanClauseOccur = BooleanClause.Occur.MUST;
+                        break;
+                    case "MUST_NOT":
+                        booleanClauseOccur = BooleanClause.Occur.MUST_NOT;
+                        break;
+                    case "SHOULD":
+                        booleanClauseOccur = BooleanClause.Occur.SHOULD;
+                        break;
+                }
+
+                List<Map<String, Object>> mapList = (List<Map<String, Object>>) entry.getValue();
+                for (Map<String, Object> innerMap : mapList) {
+                    qBuilder.add(buildQuery(innerMap), booleanClauseOccur);
+                }
+            } else if (entry.getKey().equalsIgnoreCase("range")) {
+                Map<String, Object> rangeMap = (Map<String, Object>) entry.getValue();
+                Map.Entry<String, Object> fieldEntry = rangeMap.entrySet().iterator().next();
+                Map<String, Object> dateMap = (Map<String, Object>) fieldEntry.getValue();
+                
+                Object gte = dateMap.get("gte");
+                Object lte = dateMap.get("lte");
+
+                // Assuming "date field" is the field name, you may need to adjust it based on your actual field name.
+                TermQuery gteQuery = new TermQuery(new Term("date field", gte.toString()));
+                TermQuery lteQuery = new TermQuery(new Term("date field", lte.toString()));
+
+                qBuilder.add(new BooleanClause(gteQuery, BooleanClause.Occur.MUST));
+                qBuilder.add(new BooleanClause(lteQuery, BooleanClause.Occur.MUST));
+            }
+        }
+
+        return qBuilder.build();
+    }
+}
