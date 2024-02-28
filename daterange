@@ -55,3 +55,10 @@ public class LuceneDateRangeQueryBuilder {
         return /* parsed long value */;
     }
 }
+
+        Query startQuery = LongPoint.newRangeQuery(fieldName, startMillis, Long.MAX_VALUE);
+        booleanQueryBuilder.add(new BooleanClause(startQuery, BooleanClause.Occur.MUST));
+
+        // Clause for the end date
+        Query endQuery = LongPoint.newRangeQuery(fieldName, Long.MIN_VALUE, endMillis);
+        booleanQueryBuilder.add(new BooleanClause(endQuery, BooleanClause.Occur.MUST));
