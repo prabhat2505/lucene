@@ -1,3 +1,20 @@
-    private static JSONObject sortJsonKeys(JSONObject jsonObject) {
-return jsonNode.deepCopy().setAll(new ObjectMapper().createObjectNode().setAll(jsonNode).sort());
+private static JsonNode sortJsonKeys(JsonNode jsonNode) {
+    if (!jsonNode.isObject()) {
+        return jsonNode; // Not an object, nothing to sort
     }
+
+    Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+    TreeMap<String, JsonNode> sortedFields = new TreeMap<>();
+
+    while (fields.hasNext()) {
+        Map.Entry<String, JsonNode> entry = fields.next();
+        sortedFields.put(entry.getKey(), entry.getValue());
+    }
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    com.fasterxml.jackson.databind.node.ObjectNode sortedObjectNode = objectMapper.createObjectNode();
+    sortedFields.forEach((key, value) -> sortedObjectNode.set(key, value));
+
+    return sortedObjectNode;
+}
+
