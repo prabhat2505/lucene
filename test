@@ -1,12 +1,3 @@
     private static JSONObject sortJsonKeys(JSONObject jsonObject) {
-List<String> sortedKeys = new ArrayList<>(jsonObject.keySet());
-        Collections.sort(sortedKeys, Comparator.comparingInt(Integer::parseInt));
-
-        // Create a new JSONObject with sorted keys
-        JSONObject sortedJsonObject = new JSONObject();
-        for (String key : sortedKeys) {
-            sortedJsonObject.put(key, jsonObject.get(key));
-        }
-
-        return sortedJsonObject;
+return jsonNode.deepCopy().setAll(new ObjectMapper().createObjectNode().setAll(jsonNode).sort());
     }
