@@ -1,10 +1,5 @@
     private static JSONObject sortJsonKeys(JSONObject jsonObject) {
-        // Get the keys and sort them
-        List<String> sortedKeys = new ArrayList<>();
-        Iterator<String> keys = jsonObject.keys();
-        while (keys.hasNext()) {
-            sortedKeys.add(keys.next());
-        }
+List<String> sortedKeys = new ArrayList<>(jsonObject.keySet());
         Collections.sort(sortedKeys, Comparator.comparingInt(Integer::parseInt));
 
         // Create a new JSONObject with sorted keys
