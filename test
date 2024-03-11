@@ -1,20 +1,39 @@
-private static JsonNode sortJsonKeys(JsonNode jsonNode) {
-    if (!jsonNode.isObject()) {
-        return jsonNode; // Not an object, nothing to sort
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class CsvToJsonWithSortedKeys {
+    public static void main(String[] args) throws IOException {
+        String csvData = "2.02402E+11,2.02402E+11,ROW1M1,0-10,2,2,3,17,17,17,70,2,17";
+
+        // Convert CSV to JSON with sorted keys
+        String jsonResult = convertCsvToJson(csvData);
+
+        // Display the result
+        System.out.println(jsonResult);
     }
 
-    Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-    TreeMap<String, JsonNode> sortedFields = new TreeMap<>();
+    private static String convertCsvToJson(String csvData) throws IOException {
+        String[] values = csvData.split(",");
+        ObjectMapper objectMapper = new ObjectMapper();
 
-    while (fields.hasNext()) {
-        Map.Entry<String, JsonNode> entry = fields.next();
-        sortedFields.put(entry.getKey(), entry.getValue());
+        // Create a TreeMap to store keys in sorted order
+        TreeMap<Integer, Object> sortedMap = new TreeMap<>();
+        for (int i = 0; i < values.length; i++) {
+            sortedMap.put(i, values[i].trim());
+        }
+
+        // Create a new JsonNode with sorted keys
+        com.fasterxml.jackson.databind.node.ObjectNode sortedObjectNode = objectMapper.createObjectNode();
+        sortedMap.forEach((key, value) -> sortedObjectNode.put(String.valueOf(key), (String) value));
+
+        // Convert JsonNode to JSON string
+        return sortedObjectNode.toString();
     }
-
-    ObjectMapper objectMapper = new ObjectMapper();
-    com.fasterxml.jackson.databind.node.ObjectNode sortedObjectNode = objectMapper.createObjectNode();
-    sortedFields.forEach((key, value) -> sortedObjectNode.set(key, value));
-
-    return sortedObjectNode;
 }
+
 
