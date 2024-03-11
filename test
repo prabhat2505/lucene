@@ -5,7 +5,7 @@
         while (keys.hasNext()) {
             sortedKeys.add(keys.next());
         }
-        Collections.sort(sortedKeys);
+        Collections.sort(sortedKeys, Comparator.comparingInt(Integer::parseInt));
 
         // Create a new JSONObject with sorted keys
         JSONObject sortedJsonObject = new JSONObject();
