@@ -186,3 +186,7 @@ curl -X GET \
   -H 'x-amz-content-sha256: UNSIGNED-PAYLOAD' \
   -H 'x-amz-date: 20240101T000000Z' \
   -H 'Authorization: AWS4-HMAC-SHA256 Credential=YOUR_ACCESS_KEY/20240101/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=GENERATED_SIGNATURE'
+
+
+
+https://github.com/awsdocs/aws-doc-sdk-examples/blob/main/javav2/example_code/s3/src/main/java/com/example/s3/GetObjectData.java
