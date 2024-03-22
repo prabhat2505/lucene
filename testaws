@@ -20,9 +20,12 @@ public class S3ListObjectsExample {
 
         // Create AmazonS3 client with the specified region and credentials
         AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, "us-east-1")) // Specify the region if required
                                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
                                 .withRegion(region)
                                 .build();
+
+
 
         // List objects in the specified bucket
         ObjectListing objectListing = s3Client.listObjects(bucketName);
