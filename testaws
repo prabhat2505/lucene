@@ -1,0 +1,36 @@
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.*;
+
+import java.util.List;
+
+public class S3ListObjectsExample {
+
+    public static void main(String[] args) {
+        // Set your AWS access credentials
+        String accessKey = "YOUR_ACCESS_KEY";
+        String secretKey = "YOUR_SECRET_KEY";
+        String region = "us-west-2"; // Specify the region where your S3 bucket is located
+        String bucketName = "YOUR_BUCKET_NAME";
+
+        // Create BasicAWSCredentials using your access key and secret key
+        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
+
+        // Create AmazonS3 client with the specified region and credentials
+        AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                                .withRegion(region)
+                                .build();
+
+        // List objects in the specified bucket
+        ObjectListing objectListing = s3Client.listObjects(bucketName);
+        List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
+        
+        // Print the object keys
+        for (S3ObjectSummary objectSummary : objectSummaries) {
+            System.out.println("Object Key: " + objectSummary.getKey());
+        }
+    }
+}
