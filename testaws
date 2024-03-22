@@ -175,3 +175,14 @@ curl -v http://your-custom-endpoint-url
     }
 }
 // snippet-end:[s3.java2.list_objects.main]
+
+
+
+
+
+curl -X GET \
+  'https://your-custom-endpoint-url' \
+  -H 'Host: your-custom-endpoint-url' \
+  -H 'x-amz-content-sha256: UNSIGNED-PAYLOAD' \
+  -H 'x-amz-date: 20240101T000000Z' \
+  -H 'Authorization: AWS4-HMAC-SHA256 Credential=YOUR_ACCESS_KEY/20240101/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=GENERATED_SIGNATURE'
