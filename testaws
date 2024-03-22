@@ -167,6 +167,10 @@ public class ListObjects {
 
     //convert bytes to kbs.
     private static long calKb(Long val) {
+
+
+curl -v http://your-custom-endpoint-url
+
         return val / 1024;
     }
 }
