@@ -34,3 +34,52 @@ public class S3ListObjectsExample {
         }
     }
 }
+
+
+
+
+
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.S3Object;
+
+public class S3ObjectAccessExample {
+
+    public static void main(String[] args) {
+        // Set your AWS access credentials
+        String accessKey = "YOUR_ACCESS_KEY";
+        String secretKey = "YOUR_SECRET_KEY";
+        String bucketName = "YOUR_BUCKET_NAME";
+        String objectKey = "YOUR_OBJECT_KEY";
+
+        // Create BasicAWSCredentials using your access key and secret key
+        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
+
+        // Create an AmazonS3 client with the specified region and credentials
+        AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                                .build();
+
+        try {
+            // Get the object from the S3 bucket
+            S3Object object = s3Client.getObject(bucketName, objectKey);
+            
+            // Do something with the object, for example, print its contents
+            System.out.println("Content-Type: " + object.getObjectMetadata().getContentType());
+            System.out.println("Content:");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            reader.close();
+        } catch (AmazonS3Exception e) {
+            System.err.println("Error accessing S3: " + e.getErrorMessage());
+        } catch (IOException e) {
+            System.err.println("Error reading S3 object: " + e.getMessage());
+        }
+    }
+}
+
