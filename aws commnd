@@ -4,5 +4,7 @@ aws s3api get-bucket-acl --bucket YOUR_BUCKET_NAME --endpoint-url YOUR_CUSTOM_EN
 aws s3 ls http://YOUR_BUCKET_NAME.s3.amazonaws.com/ --no-sign-request
 
 aws s3 ls http://YOUR_CUSTOM_ENDPOINT_URL/ --no-sign-request
+aws s3 ls s3://YOUR_BUCKET_NAME/ --endpoint-url http://YOUR_CUSTOM_ENDPOINT_URL/ --no-sign-request
+
 
 
