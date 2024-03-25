@@ -1,0 +1,2 @@
+aws s3api get-bucket-policy --bucket YOUR_BUCKET_NAME --endpoint-url YOUR_CUSTOM_ENDPOINT_URL
+aws s3api get-bucket-acl --bucket YOUR_BUCKET_NAME --endpoint-url YOUR_CUSTOM_ENDPOINT_URL
