@@ -38,3 +38,45 @@ public class S3Util {
 
     // Add methods to work with S3 using the configured credentials and region
 }
+
+
+
+import org.yaml.snakeyaml.Yaml;
+import java.io.InputStream;
+import java.util.Map;
+
+public class S3Util {
+    private final String accessKey;
+    private final String secretKey;
+    private final String bucketName;
+
+    public S3Util() {
+        // Load the YAML file from the resources directory
+        InputStream inputStream = S3Util.class.getResourceAsStream("/application.yaml");
+
+        // Parse the YAML file
+        Yaml yaml = new Yaml();
+        Map<String, Object> yamlData = yaml.load(inputStream);
+
+        // Extract AWS credentials and bucket name directly from the YAML data
+        this.accessKey = (String) yamlData.get("accesskey");
+        this.secretKey = (String) yamlData.get("scretkey");
+        this.bucketName = (String) yamlData.get("bucketname");
+    }
+
+    // Getter methods for accessKey, secretKey, and bucketName
+
+    public String getAccessKey() {
+        return accessKey;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public String getBucketName() {
+        return bucketName;
+    }
+
+    // Add methods to work with S3 using the configured credentials and bucket name
+}
