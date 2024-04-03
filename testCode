@@ -99,7 +99,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 
-public class YourClassTest {
+public class S3UtilTest {
 
     @Test
     public void testGetFileContent() throws IOException {
@@ -116,12 +116,12 @@ public class YourClassTest {
         S3ObjectInputStream objectContent = new S3ObjectInputStream(inputStream, null);
         when(s3Object.getObjectContent()).thenReturn(objectContent);
         
-        // Instantiate YourClass
-        YourClass yourClass = new YourClass();
-        yourClass.setS3Client(s3Client);
+        // Instantiate S3Util
+        S3Util s3Util = new S3Util();
+        s3Util.setS3Client(s3Client);
         
         // Invoke getFileContent method
-        String actualContent = yourClass.getFileContent("yourFileName", "yourBucketName");
+        String actualContent = s3Util.getFileContent("yourFileName", "yourBucketName");
         
         // Assert the content
         assertEquals(content, actualContent);
