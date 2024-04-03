@@ -244,3 +244,93 @@ public class S3UtilTest {
 }
 
 
+
+
+
+
+Feature: Read File from S3 Bucket
+
+  Scenario: Read a file from an S3 bucket
+    Given I have access to an S3 bucket
+    And there is a file named "example.txt" in the bucket
+    When I read the file from the bucket
+    Then I should be able to view its content
+
+
+
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+
+import io.cucumber.java.en.*;
+
+public class ReadS3FileStepDefinitions {
+
+    private AmazonS3 s3Client;
+    private String fileName;
+    private String fileContent;
+
+    @Given("I have access to an S3 bucket")
+    public void iHaveAccessToAnS3Bucket() {
+        // Mock AmazonS3 client
+        s3Client = mock(AmazonS3.class);
+    }
+
+    @And("there is a file named {string} in the bucket")
+    public void thereIsAFileNamedInTheBucket(String fileName) {
+        this.fileName = fileName;
+    }
+
+    @When("I read the file from the bucket")
+    public void iReadTheFileFromTheBucket() throws IOException {
+        // Mock S3Object
+        S3Object s3Object = mock(S3Object.class);
+        
+        // Mock S3ObjectInputStream
+        String content = "This is the file content";
+        InputStream inputStream = new ByteArrayInputStream(content.getBytes());
+        S3ObjectInputStream objectContent = new S3ObjectInputStream(inputStream, null);
+        
+        // Configure s3Object to return mock S3ObjectInputStream
+        when(s3Object.getObjectContent()).thenReturn(objectContent);
+        
+        // Configure s3Client.getObject to return the mock S3Object
+        when(s3Client.getObject(any())).thenReturn(s3Object);
+        
+        // Invoke getFileContent method
+        fileContent = readS3File(fileName, s3Client);
+    }
+
+    @Then("I should be able to view its content")
+    public void iShouldBeAbleToViewItsContent() {
+        // Assert the content
+        assertEquals("This is the file content", fileContent);
+    }
+
+    private String readS3File(String fileName, AmazonS3 s3Client) throws IOException {
+        S3Object s3Object = s3Client.getObject("yourBucketName", fileName);
+        S3ObjectInputStream objectContent = s3Object.getObjectContent();
+        StringBuilder content = new StringBuilder();
+
+        try (InputStreamReader streamReader = new InputStreamReader(objectContent);
+             BufferedReader reader = new BufferedReader(streamReader)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line);
+            }
+        }
+
+        return content.toString();
+    }
+}
+
+
