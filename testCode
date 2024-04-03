@@ -80,3 +80,53 @@ public class S3Util {
 
     // Add methods to work with S3 using the configured credentials and bucket name
 }
+
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import org.junit.Test;
+
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+
+public class YourClassTest {
+
+    @Test
+    public void testGetFileContent() throws IOException {
+        // Mock AmazonS3 client
+        AmazonS3 s3Client = mock(AmazonS3.class);
+        
+        // Mock S3Object
+        S3Object s3Object = mock(S3Object.class);
+        when(s3Client.getObject("yourBucketName", "yourFileName")).thenReturn(s3Object);
+        
+        // Mock S3ObjectInputStream
+        String content = "This is the file content";
+        InputStream inputStream = new ByteArrayInputStream(content.getBytes());
+        S3ObjectInputStream objectContent = new S3ObjectInputStream(inputStream, null);
+        when(s3Object.getObjectContent()).thenReturn(objectContent);
+        
+        // Instantiate YourClass
+        YourClass yourClass = new YourClass();
+        yourClass.setS3Client(s3Client);
+        
+        // Invoke getFileContent method
+        String actualContent = yourClass.getFileContent("yourFileName", "yourBucketName");
+        
+        // Assert the content
+        assertEquals(content, actualContent);
+    }
+}
+
+
+
