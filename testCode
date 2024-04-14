@@ -334,3 +334,25 @@ public class ReadS3FileStepDefinitions {
 }
 
 
+
+
+
+
+# .gitlab-ci.yml
+
+stages:
+  - build
+
+variables:
+  DOCKER_HOST: tcp://docker:2375/  # Set the Docker daemon address
+
+build_image:
+  stage: build
+  image: docker:stable
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build --build-arg ENVIRONMENT=uat -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
