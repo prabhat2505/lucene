@@ -379,3 +379,69 @@ build_image:
     - docker build --build-arg ENVIRONMENT=$ENVIRONMENT -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+public class JsonMapper {
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    public String map(JsonNode originalJson) throws Exception {
+        // Create ObjectNodes to store fields and data
+        ObjectNode fieldsMap = objectMapper.createObjectNode();
+        ObjectNode data = objectMapper.createObjectNode();
+
+        // Iterate over the field names (keys)
+        Iterator<String> fieldNames = originalJson.fieldNames();
+
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode fieldValue = originalJson.get(fieldName);
+
+            String type;
+
+            if (fieldValue.isObject()) { // If the field is another JSON object
+                type = "object";
+                data.set(fieldName, fieldValue); // Store the object field
+            } else if (fieldValue.isTextual()) { // If the field is a text (string)
+                type = "string";
+                data.put(fieldName, fieldValue.asText());
+            } else if (fieldValue.isInt()) { // If the field is an integer
+                type = "integer";
+                data.put(fieldName, fieldValue.asInt());
+            } else if (fieldValue.isBoolean()) { // If the field is a boolean
+                type = "boolean";
+                data.put(fieldName, fieldValue.asBoolean());
+            } else {
+                type = "unknown";
+            }
+
+            // Store the type in fieldsMap
+            fieldsMap.put(fieldName, type);
+        }
+
+        // Create an encapsulating ObjectNode to hold fields and data
+        ObjectNode encapsulatedJson = objectMapper.createObjectNode();
+        encapsulatedJson.set("fieldsMap", fieldsMap);
+        encapsulatedJson.set("data", data);
+
+        // Convert the ObjectNode to a JSON string
+        return encapsulatedJson.toString();
+    }
+}
+
