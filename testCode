@@ -445,3 +445,72 @@ public class JsonMapper {
     }
 }
 
+
+
+
+
+
+
+
+import org.json.JSONObject;
+import org.json.JSONArray;
+import java.util.Iterator;
+
+public class JsonComparator {
+    
+    // Compares two JSONObjects recursively, ignoring the order of keys
+    public static boolean areJsonObjectsEqual(JSONObject json1, JSONObject json2) {
+        if (json1.length() != json2.length()) {
+            return false; // Different number of keys
+        }
+
+        for (String key : json1.keySet()) {
+            if (!json2.has(key)) {
+                return false; // json2 doesn't have this key
+            }
+
+            Object value1 = json1.get(key);
+            Object value2 = json2.get(key);
+
+            if (value1 instanceof JSONObject && value2 instanceof JSONObject) {
+                // Recursive comparison for nested JSONObjects
+                if (!areJsonObjectsEqual((JSONObject) value1, (JSONObject) value2)) {
+                    return false;
+                }
+            } else if (value1 instanceof JSONArray && value2 instanceof JSONArray) {
+                // Recursive comparison for JSONArrays
+                if (!areJsonArraysEqual((JSONArray) value1, (JSONArray) value2)) {
+                    return false;
+                }
+            } else if (!value1.equals(value2)) {
+                return false; // Different values for the same key
+            }
+        }
+
+        return true;
+    }
+
+    // Compares two JSONArrays recursively, considering the order of elements
+    public static boolean areJsonArraysEqual(JSONArray array1, JSONArray array2) {
+        if (array1.length() != array2.length()) {
+            return false;
+        }
+
+        for (int i = 0; i < array1.length(); i++) {
+            Object item1 = array1.get(i);
+            Object item2 = array2.get(i);
+
+            if (item1 instanceof JSONObject && item2 instanceof JSONObject) {
+                if (!areJsonObjectsEqual((JSONObject) item1, (JSONObject) item2)) {
+                    return false;
+                }
+            } else if (!item1.equals(item2)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+
