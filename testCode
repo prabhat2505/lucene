@@ -574,3 +574,15 @@ public class JsonComparator {
 
 
 
+
+
+
+
+    public static Set<String> iteratorToSet(Iterator<String> iterator) {
+        Set<String> set = new HashSet<>();
+        while (iterator.hasNext()) {
+            set.add(iterator.next());
+        }
+        return set;
+    }
+
