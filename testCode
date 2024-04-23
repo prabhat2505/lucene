@@ -514,3 +514,63 @@ public class JsonComparator {
 }
 
 
+import org.json.JSONObject;
+import org.json.JSONArray;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+public class JsonComparator {
+
+    // Converts an Iterator to a Set of strings
+    public static Set<String> iteratorToSet(Iterator<String> iterator) {
+        Set<String> set = new HashSet<>();
+        while (iterator.hasNext()) {
+            set.add(iterator.next());
+        }
+        return set;
+    }
+
+    // Compares two JSONObjects recursively, ignoring the order of keys
+    public static boolean areJsonObjectsEqual(JSONObject json1, JSONObject json2) {
+        if (json1.length() != json2.length()) {
+            return false; // Different number of keys
+        }
+
+        // Convert keys() to a set for reliable comparison
+        Set<String> keys1 = iteratorToSet(json1.keys());
+        Set<String> keys2 = iteratorToSet(json2.keys());
+
+        if (!keys1.equals(keys2)) {
+            return false; // The key sets are not the same
+        }
+
+        for (String key : keys1) {
+            Object value1 = json1.get(key);
+            Object value2 = json2.get(key);
+
+            if (value1 instanceof JSONObject && value2 instanceof JSONObject) {
+                if (!areJsonObjectsEqual((JSONObject) value1, (JSONObject) value2)) {
+                    return false; // Nested object comparison
+            } else if (value1 instanceof JSONArray && value2 instanceof JSONArray) {
+                if (!areJsonArraysEqual((JSONArray) value1, (JSONArray) value2)) {
+                    return false; // Nested array comparison
+            } else if (!value1.equals(value2)) {
+                return false; // Different value for the same key
+            }
+        }
+
+        return true; // All keys and values match
+    }
+
+    // Compares two JSONArrays recursively, considering the order of elements
+    public static boolean areJsonArraysEqual(JSONArray array1, JSONArray array2) {
+        if (array1.length() != array2.length()) {
+            return false; // Different number of elements
+        }
+
+        for (int i = 0; i < array1.length(); i++) {
+            Object item1 = array1
+
+
+
