@@ -53,3 +53,21 @@ public class JsonMapper {
         return encapsulatedJson.toString();
     }
 }
+
+
+
+
+        String mappedJsonString = jsonMapper.map(originalJson);
+        ObjectNode mappedJson = (ObjectNode) objectMapper.readTree(mappedJsonString);
+
+        // Assert fieldsMap has the correct type mapping
+        ObjectNode fieldsMap = (ObjectNode) mappedJson.get("fieldsMap");
+        assertEquals("string", fieldsMap.get("name").asText());
+        assertEquals("string", fieldsMap.get("age").asText());
+        assertEquals("object", fieldsMap.get("address").asText());
+
+        // Assert data contains the expected nested values
+        ObjectNode data = (ObjectNode) mappedJson.get("data");
+        ObjectNode addressData = (ObjectNode) data.get("address");
+        assertEquals("New York", addressData.get("city").asText());
+        assertEquals("10001", addressData.get("zip").asText());
