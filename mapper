@@ -1,0 +1,55 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.json.JSONObject;
+import java.util.Iterator;
+
+public class JsonMapper {
+
+    private final ObjectMapper objectMapper;
+
+    public JsonMapper() {
+        this.objectMapper = new ObjectMapper();
+    }
+
+    @Override
+    public String map(JSONObject originalJson) throws Exception {
+        ObjectNode fieldsMap = objectMapper.createObjectNode();
+        ObjectNode data = objectMapper.createObjectNode();
+
+        Iterator<String> keys = originalJson.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = originalJson.get(key);
+
+            // Handle JSONObject by converting it to ObjectNode
+            if (value instanceof JSONObject) {
+                fieldsMap.put(key, "object");
+                ObjectNode nestedData = objectMapper.createObjectNode();
+                JSONObject jsonObjectValue = (JSONObject) value;
+
+                // Populate nested ObjectNode
+                Iterator<String> nestedKeys = jsonObjectValue.keys();
+                while (nestedKeys.hasNext()) {
+                    String nestedKey = nestedKeys.next();
+                    Object nestedValue = jsonObjectValue.get(nestedKey);
+
+                    if (nestedValue instanceof String) {
+                        nestedData.put(nestedKey, (String) nestedValue);
+                    }
+                }
+
+                data.set(key, nestedData);  // Set converted ObjectNode
+            } else {
+                // Handle simple data types
+                fieldsMap.put(key, "string");
+                data.put(key, value.toString());
+            }
+        }
+
+        ObjectNode encapsulatedJson = objectMapper.createObjectNode();
+        encapsulatedJson.set("fieldsMap", fieldsMap);
+        encapsulatedJson.set("data", data);
+
+        return encapsulatedJson.toString();
+    }
+}
