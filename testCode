@@ -586,3 +586,112 @@ public class JsonComparator {
         return set;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.json.JSONObject;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class JsonMapperTest {
+
+    private JsonMapper jsonMapper;
+    private ObjectMapper objectMapper;
+
+    @Before
+    public void setUp() {
+        jsonMapper = new JsonMapper();
+        objectMapper = new ObjectMapper();
+    }
+
+    @Test
+    public void testMapWithSimpleJson() throws Exception {
+        // Create a simple JSON object
+        JSONObject originalJson = new JSONObject();
+        originalJson.put("name", "John");
+        originalJson.put("age", 30);
+
+        // Call the method
+        String result = jsonMapper.map(originalJson);
+
+        // Parse the result into an ObjectNode to inspect
+        ObjectNode resultJson = (ObjectNode) objectMapper.readTree(result);
+
+        // Check if the 'fieldsMap' object contains the correct types
+        ObjectNode fieldsMap = (ObjectNode) resultJson.get("fieldsMap");
+        assertEquals("string", fieldsMap.get("name").asText());
+        assertEquals("string", fieldsMap.get("age").asText());
+
+        // Check if the 'data' object contains the expected data
+        ObjectNode data = (ObjectNode) resultJson.get("data");
+        assertEquals("John", data.get("name").asText());
+        assertEquals(30, data.get("age").asInt());
+    }
+
+    @Test
+    public void testMapWithNestedJson() throws Exception {
+        // Create a nested JSON object
+        JSONObject originalJson = new JSONObject();
+        originalJson.put("name", "Alice");
+        JSONObject address = new JSONObject();
+        address.put("city", "New York");
+        address.put("zip", "10001");
+        originalJson.put("address", address);
+
+        // Call the method
+        String result = jsonMapper.map(originalJson);
+
+        // Parse the result into an ObjectNode to inspect
+        ObjectNode resultJson = (ObjectNode) objectMapper.readTree(result);
+
+        // Check if the 'fieldsMap' object contains the correct types
+        ObjectNode fieldsMap = (ObjectNode) resultJson.get("fieldsMap");
+        assertEquals("string", fieldsMap.get("name").asText());
+        assertEquals("object", fieldsMap.get("address").asText());
+
+        // Check if the 'data' object contains the expected data
+        ObjectNode data = (ObjectNode) resultJson.get("data");
+        assertEquals("Alice", data.get("name").asText());
+
+        ObjectNode addressNode = (ObjectNode) data.get("address");
+        assertEquals("New York", addressNode.get("city").asText());
+        assertEquals("10001", addressNode.get("zip").asText());
+    }
+
+    @Test
+    public void testMapWithEmptyJson() throws Exception {
+        // Create an empty JSON object
+        JSONObject originalJson = new JSONObject();
+
+        // Call the method
+        String result = jsonMapper.map(originalJson);
+
+        // Parse the result into an ObjectNode to inspect
+        ObjectNode resultJson = (ObjectNode) objectMapper.readTree(result);
+
+        // Check if the 'fieldsMap' and 'data' are empty
+        ObjectNode fieldsMap = (ObjectNode) resultJson.get("fieldsMap");
+        assertTrue(fieldsMap.isEmpty());
+
+        ObjectNode data = (ObjectNode) resultJson.get("data");
+        assertTrue(data.isEmpty());
+    }
+}
+
