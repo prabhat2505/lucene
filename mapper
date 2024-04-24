@@ -165,3 +165,112 @@ public class JsonMapper {
         return encapsulatedJson.toString();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.Iterator;
+
+public class JsonMapper {
+
+    private final ObjectMapper objectMapper;
+
+    public JsonMapper() {
+        this.objectMapper = new ObjectMapper();
+    }
+
+    @Override
+    public String map(JSONObject originalJson) throws Exception {
+        ObjectNode fieldsMap = objectMapper.createObjectNode();
+        ObjectNode data = objectMapper.createObjectNode();
+
+        Iterator<String> keys = originalJson.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = originalJson.get(key);
+
+            // Determine the type for fieldsMap
+            if (value instanceof JSONObject) {
+                fieldsMap.put(key, "object");
+                ObjectNode nestedData = processJsonObject((JSONObject) value);
+                data.set(key, nestedData);
+            } else if (value instanceof JSONArray) {
+                fieldsMap.put(key, "array");
+
+                JSONArray jsonArray = (JSONArray) value;
+                if (jsonArray.length() > 0 && jsonArray.get(0) instanceof JSONObject) {
+                    // Handle arrays of objects
+                    ObjectNode arrayData = objectMapper.createObjectNode();
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        ObjectNode objectInArray = processJsonObject(jsonArray.getJSONObject(i));
+                        arrayData.set(String.valueOf(i), objectInArray);
+                    }
+
+                    data.set(key, arrayData);
+                } else {
+                    // Handle arrays of simple types like strings or numbers
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        data.put(key + "[" + i + "]", jsonArray.get(i).toString());
+                    }
+                }
+            } else {
+                fieldsMap.put(key, "string");
+                data.put(key, value.toString());
+            }
+        }
+
+        ObjectNode encapsulatedJson = objectMapper.createObjectNode();
+        encapsulatedJson.set("fieldsMap", fieldsMap);
+        encapsulatedJson.set("data", data);
+
+        return encapsulatedJson.toString();
+    }
+
+    private ObjectNode processJsonObject(JSONObject jsonObject) throws Exception {
+        ObjectNode objectNode = objectMapper.createObjectNode();
+
+        Iterator<String> keys = jsonObject.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = jsonObject.get(key);
+
+            if (value instanceof JSONObject) {
+                objectNode.set(key, processJsonObject((JSONObject) value));
+            } else if (value instanceof JSONArray) {
+                JSONArray jsonArray = (JSONArray) value;
+                if (jsonArray.length() > 0 && jsonArray.get(0) instanceof JSONObject) {
+                    ObjectNode arrayData = objectMapper.createObjectNode();
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        arrayData.set(String.valueOf(i), processJsonObject(jsonArray.getJSONObject(i)));
+                    }
+                    objectNode.set(key, arrayData);
+                } else {
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        objectNode.put(key + "[" + i + "]", jsonArray.get(i).toString());
+                    }
+                }
+            } else {
+                objectNode.put(key, value.toString());
+            }
+        }
+
+        return objectNode;
+    }
+}
+
