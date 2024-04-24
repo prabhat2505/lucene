@@ -71,3 +71,97 @@ public class JsonMapper {
         ObjectNode addressData = (ObjectNode) data.get("address");
         assertEquals("New York", addressData.get("city").asText());
         assertEquals("10001", addressData.get("zip").asText());
+
+
+
+
+
+
+
+
+
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.Iterator;
+
+public class JsonMapper {
+
+    private final ObjectMapper objectMapper;
+
+    public JsonMapper() {
+        this.objectMapper = new ObjectMapper();
+    }
+
+    @Override
+    public String map(JSONObject originalJson) throws Exception {
+        ObjectNode fieldsMap = objectMapper.createObjectNode();
+        ObjectNode data = objectMapper.createObjectNode();
+
+        Iterator<String> keys = originalJson.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = originalJson.get(key);
+
+            // Determine the field type
+            String fieldType;
+            if (value instanceof JSONObject) {
+                fieldType = "object";
+                ObjectNode nestedData = objectMapper.createObjectNode();
+                JSONObject jsonObject = (JSONObject) value;
+
+                Iterator<String> nestedKeys = jsonObject.keys();
+                while (nestedKeys.hasNext()) {
+                    String nestedKey = nestedKeys.next();
+                    nestedData.putPOJO(nestedKey, jsonObject.get(nestedKey));
+                }
+
+                fieldsMap.put(key, fieldType);
+                data.set(key, nestedData);
+
+            } else if (value instanceof JSONArray) {
+                fieldType = "array";
+
+                JSONArray jsonArray = (JSONArray) value;
+                if (jsonArray.length() > 0 && jsonArray.get(0) instanceof JSONObject) {
+                    // Array of objects
+                    ObjectNode arrayData = objectMapper.createObjectNode();
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        ObjectNode objectInArray = objectMapper.createObjectNode();
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+                        Iterator<String> nestedKeys = jsonObject.keys();
+                        while (nestedKeys.hasNext()) {
+                            String nestedKey = nestedKeys.next();
+                            objectInArray.putPOJO(nestedKey, jsonObject.get(nestedKey));
+                        }
+
+                        arrayData.set(String.valueOf(i), objectInArray);
+                    }
+
+                    data.set(key, arrayData);
+                } else {
+                    // Array of other types (e.g., strings)
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        data.put(key + "[" + i + "]", jsonArray.get(i).toString());
+                    }
+                }
+
+                fieldsMap.put(key, fieldType);
+            } else {
+                fieldType = "string";
+                fieldsMap.put(key, fieldType);
+                data.put(key, value.toString());
+            }
+        }
+
+        ObjectNode encapsulatedJson = objectMapper.createObjectNode();
+        encapsulatedJson.set("fieldsMap", fieldsMap);
+        encapsulatedJson.set("data", data);
+
+        return encapsulatedJson.toString();
+    }
+}
