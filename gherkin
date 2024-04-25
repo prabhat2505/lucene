@@ -1,0 +1,67 @@
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.When;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.And;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.errors.WakeupException;
+import org.apache.kafka.common.errors.KafkaException;
+import org.json.JSONObject;
+
+import java.util.Collections;
+import java.util.Properties;
+
+public class KafkaConsumerStepDefinitions {
+    private KafkaConsumer<String, String> consumer;
+    private ConsumerRecord<String, String> record;
+
+    @Given("a Kafka topic named {string}")
+    public void givenKafkaTopic(String topic) {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-group");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+        consumer = new KafkaConsumer<>(props);
+        consumer.subscribe(Collections.singletonList(topic));
+    }
+
+    @When("a message is consumed from this topic")
+    public void whenMessageIsConsumed() {
+        try {
+            record = consumer.poll(10000).iterator().next(); // Poll with 10-second timeout
+        } catch (WakeupException | KafkaException e) {
+            record = null; // Handle Kafka errors
+        }
+    }
+
+    @Then("the message should contain a field {string}")
+    public void thenMessageContainsField(String field) {
+        assert record != null : "No record consumed";
+        JSONObject message = new JSONObject(record.value());
+        assert message.has(field) : "Field " + field + " not found in message";
+    }
+
+    @And("the {string} field should be a positive integer")
+    public void andFieldShouldBePositiveInteger(String field) {
+        JSONObject message = new JSONObject(record.value());
+        int value = message.getInt(field);
+        assert value > 0 : "Field " + field + " is not a positive integer";
+    }
+
+    @And("the {string} field should be one of {string}")
+    public void andFieldShouldBeOneOf(String field, String values) {
+        JSONObject message = new JSONObject(record.value());
+        String fieldValue = message.getString(field);
+        String[] validValues = values.split(",");
+        boolean isValid = false;
+        for (String validValue : validValues) {
+            if (fieldValue.equals(validValue.trim())) {
+                isValid = true;
+                break;
+            }
+        }
+        assert isValid : "Field " + field + " does not match any of the expected values";
+    }
+}
