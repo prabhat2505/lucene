@@ -37,3 +37,60 @@ public class CsvToJsonWithSortedKeys {
 }
 
 
+
+
+
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class JsonTransformer {
+
+    public static JSONObject transformToLucene(JSONObject inputJson) {
+        // Create a "must" array for query conditions
+        JSONArray mustClauses = new JSONArray();
+
+        // Iterate through input key-value pairs to build the "must" clauses
+        for (String key : inputJson.keySet()) {
+            JSONObject term = new JSONObject();
+            term.put(key, inputJson.get(key));
+
+            JSONObject termWrapper = new JSONObject();
+            termWrapper.put("term", term);
+
+            mustClauses.put(termWrapper);
+        }
+
+        // Build the final JSON object with "bool" and "sort" elements
+        JSONObject query = new JSONObject();
+        JSONObject bool = new JSONObject();
+        bool.put("must", mustClauses);
+
+        query.put("bool", bool);
+
+        // Add sorting condition
+        JSONArray sort = new JSONArray();
+        JSONObject sortField = new JSONObject();
+        sortField.put("createdAt", "desc");
+        sort.put(sortField);
+
+        JSONObject result = new JSONObject();
+        result.put("query", query);
+        result.put("sort", sort);
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        // Example input JSON
+        JSONObject inputJson = new JSONObject();
+        inputJson.put("enabled", true);
+        inputJson.put("type", "xml");
+
+        // Transform input data into Lucene-like JSON
+        JSONObject transformedJson = transformToLucene(inputJson);
+
+        // Output the transformed JSON
+        System.out.println(transformedJson.toString(2)); // Pretty-print with an indent of 2 spaces
+    }
+}
