@@ -1,0 +1,82 @@
+import org.json.JSONObject;
+import java.lang.reflect.Field;
+
+public class GenericTransformer {
+
+    public static <T> JSONObject transformToJSONObject(T object) {
+        JSONObject jsonObject = new JSONObject();
+
+        // Use reflection to get the fields of the object
+        Field[] fields = object.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            try {
+                // Ensure we can access the field's value
+                field.setAccessible(true);
+
+                // Get the field name and value
+                String fieldName = field.getName();
+                Object fieldValue = field.get(object);
+
+                // Add the field to the JSONObject
+                jsonObject.put(fieldName, fieldValue);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Error accessing field: " + field.getName(), e);
+            }
+        }
+
+        return jsonObject;
+    }
+}
+
+
+
+public class UserEntity {
+    private String id;
+    private String name;
+
+    // Constructor, getters, and setters
+    public UserEntity(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+// Example usage
+UserEntity user = new UserEntity("1", "John Doe");
+JSONObject jsonObject = GenericTransformer.transformToJSONObject(user);
+
+// Expected output: {"id": "1", "name": "John Doe"}
+System.out.println(jsonObject.toString());
+
+
+
+
+import org.json.JSONObject;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class GenericTransformerTest {
+
+    @Test
+    public void testTransformToJSONObject() {
+        // Create a UserEntity instance to transform
+        UserEntity user = new UserEntity("1", "John Doe");
+
+        // Use the generic function to transform to JSONObject
+        JSONObject jsonObject = GenericTransformer.transformToJSONObject(user);
+
+        // Validate the contents of the JSONObject
+        assertNotNull(jsonObject);
+        assertEquals("1", jsonObject.getString("id")); // Validate 'id'
+        assertEquals("John Doe", jsonObject.getString("name")); // Validate 'name'
+    }
+}
