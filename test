@@ -123,3 +123,76 @@ public void testSearchSpaceCollector() throws JSONException {
         System.out.println(transformedJson.toString(2)); // Pretty-print with an indent of 2 spaces
     }
 }
+
+
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.apache.lucene.search.Query;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.any;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+import java.util.ArrayList;
+
+// Import your repository and related classes
+import com.example.repository.SpaceCollectorLuceneRepository;
+import com.example.model.SpaceCollector;
+
+@ExtendWith(MockitoExtension.class)
+public class SpaceCollectorLuceneRepositoryTest {
+
+    @Mock
+    private LuceneSearchService mockLuceneService; // Assume your repository uses a service to interact with Lucene
+
+    @InjectMocks
+    private SpaceCollectorLuceneRepository spaceCollectorLuceneRepository;
+
+    @BeforeEach
+    public void setUp() {
+        // Initialize any setup logic or test-specific configurations if needed
+    }
+
+    @Test
+    public void testFindByQuery() {
+        // Create a mock query (specific to Lucene)
+        Query query = ...; // Prepare a Lucene query appropriate for your test case
+
+        // Prepare mock results
+        List<SpaceCollector> expectedResults = new ArrayList<>();
+        SpaceCollector spaceCollector = new SpaceCollector();
+        spaceCollector.setId("1");
+        expectedResults.add(spaceCollector);
+
+        // Mock the Lucene search to return the expected results when given the query
+        given(mockLuceneService.search(any(Query.class))).willReturn(expectedResults);
+
+        // Call the method in the repository to test
+        List<SpaceCollector> actualResults = spaceCollectorLuceneRepository.findByQuery(query);
+
+        // Verify the results are as expected
+        assertNotNull(actualResults);
+        assertEquals(expectedResults.size(), actualResults.size());
+        assertEquals(expectedResults.get(0).getId(), actualResults.get(0).getId());
+    }
+
+    @Test
+    public void testSaveSpaceCollector() {
+        SpaceCollector spaceCollector = new SpaceCollector();
+        spaceCollector.setId("1");
+
+        // Assume a successful save returns the same object with some Lucene-related metadata
+        given(mockLuceneService.save(spaceCollector)).willReturn(spaceCollector);
+
+        SpaceCollector savedSpaceCollector = spaceCollectorLuceneRepository.save(spaceCollector);
+
+        assertNotNull(savedSpaceCollector);
+        assertEquals("1", savedSpaceCollector.getId());
+    }
+}
+
