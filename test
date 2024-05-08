@@ -90,6 +90,35 @@ public class JsonTransformer {
         // Transform input data into Lucene-like JSON
         JSONObject transformedJson = transformToLucene(inputJson);
 
+
+
+
+
+@Test
+public void testSearchSpaceCollector() throws JSONException {
+    SpaceCollectorLuceneRepository mockRepository = Mockito.mock(SpaceCollectorLuceneRepository.class);
+    SpaceCollectorService spaceCollectorService = new SpaceCollectorService(mockRepository);
+
+    String searchString = "{\"id\":\"1\",\"enabled\":\"true\"}";
+    String transformedSearchString = "{\"bool\":{\"must\":[{\"term\":{\"id\":\"1\"}}, {\"term\":{\"enabled\":true}}]}}";
+
+    List<SpaceCollector> spaceCollectorList = new ArrayList<>();
+    SpaceCollector spaceCollector = new SpaceCollector();
+    spaceCollector.setId("1");
+    spaceCollector.setEnabled(true);
+    spaceCollectorList.add(spaceCollector);
+
+    given(mockRepository.findByQuery(transformedSearchString))
+        .willReturn(spaceCollectorList);
+
+    List<SpaceCollector> result = spaceCollectorService.search(searchString);
+
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(spaceCollector, result.get(0));
+}
+
+
         // Output the transformed JSON
         System.out.println(transformedJson.toString(2)); // Pretty-print with an indent of 2 spaces
     }
