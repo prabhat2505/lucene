@@ -196,3 +196,64 @@ public class SpaceCollectorLuceneRepositoryTest {
     }
 }
 
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.Arrays;
+import java.util.List;
+
+// Import your controller, service, and model
+import com.example.controller.SpaceCollectorController;
+import com.example.service.SpaceCollectorService;
+import com.example.model.SpaceCollector;
+
+@ExtendWith(SpringExtension.class)
+@WebMvcTest(SpaceCollectorController.class) // This annotation is used to test Spring MVC controllers
+public class SpaceCollectorControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc; // MockMvc is used to simulate HTTP requests and validate responses
+
+    @MockBean
+    private SpaceCollectorService spaceCollectorService; // Mock the service the controller depends on
+
+    @Test
+    public void testSearchSpaceCollector() throws Exception {
+        // Create a sample SpaceCollector object to be returned by the mocked service
+        SpaceCollector spaceCollector = new SpaceCollector();
+        spaceCollector.setId("1");
+        spaceCollector.setEnabled(true);
+
+        List<SpaceCollector> expectedResults = Arrays.asList(spaceCollector);
+
+        // Mock the service to return the expected results when the search method is called
+        given(spaceCollectorService.search(any())).willReturn(expectedResults);
+
+        // Create a sample JSON request body
+        String jsonRequestBody = "{\"id\":\"1\",\"enabled\":true}";
+
+        // Perform a POST request to the controller's search endpoint
+        mockMvc.perform(post("/api/spaceCollectors")
+                .contentType(MediaType.APPLICATION_JSON) // Specify the content type
+                .content(jsonRequestBody)) // Provide the JSON body
+                .andExpect(status().isOk()) // Check that the status is 200 OK
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON)) // Validate the response content type
+                .andExpect(jsonPath("$[0].id").value("1")) // Validate the JSON response
+                .andExpect(jsonPath("$[0].enabled").value(true)); // Validate specific fields in the JSON response
+    }
+}
+
