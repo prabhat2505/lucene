@@ -1,0 +1,20 @@
+import org.json.JSONObject;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
+public class QueryParameterController {
+
+    @GetMapping("/convertToJson")
+    public JSONObject convertToJson(@RequestParam Map<String, String> queryParams) {
+        // Convert the map of query parameters into a JSONObject
+        JSONObject jsonObject = new JSONObject(queryParams);
+
+        return jsonObject; // Return the JSON representation of the query parameters
+    }
+}
