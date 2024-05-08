@@ -257,3 +257,61 @@ public class SpaceCollectorControllerTest {
     }
 }
 
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.example.controller.SpaceCollectorController;
+import com.example.service.SpaceCollectorService;
+import com.example.model.SpaceCollector;
+
+@ExtendWith(MockitoExtension.class) // Enable Mockito support for JUnit 5
+public class SpaceCollectorControllerTest {
+
+    @Mock
+    private SpaceCollectorService spaceCollectorService; // Mock the service
+
+    @InjectMocks
+    private SpaceCollectorController spaceCollectorController; // Inject mocks into the controller
+
+    @Test
+    public void testSearch() throws Exception {
+        // Create a sample SpaceCollector object for testing
+        SpaceCollector spaceCollector = new SpaceCollector();
+        spaceCollector.setId("1");
+        spaceCollector.setEnabled(true);
+
+        List<SpaceCollector> expectedResults = Arrays.asList(spaceCollector);
+
+        // Mock the service to return the expected results
+        given(spaceCollectorService.search(any())).willReturn(expectedResults);
+
+        // Create a mock request body
+        SpaceCollector request = new SpaceCollector();
+        request.setId("1");
+        request.setEnabled(true);
+
+        // Directly call the controller's search method
+        ResponseEntity<List<SpaceCollector>> response = spaceCollectorController.search(request);
+
+        // Verify the response
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode()); // Check response status
+        assertNotNull(response.getBody()); // Ensure response has a body
+        assertEquals(1, response.getBody().size()); // Check the size of the response list
+        assertEquals("1", response.getBody().get(0).getId()); // Validate the content
+    }
+}
+
