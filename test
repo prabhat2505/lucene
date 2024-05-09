@@ -1,4 +1,4 @@
-import com.fasterxml.jackson.databind.JsonNode;
+88import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -315,3 +315,67 @@ public class SpaceCollectorControllerTest {
     }
 }
 
+import org.json.JSONObject;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+public class CollectionAuditCRUD {
+
+    private static final Logger log = LoggerFactory.getLogger(CollectionAuditCRUD.class);
+
+    private static final String SERVER_URL = "http://localhost:8080"; // Base server URL
+    private static final String SPACE_COLLECTOR_SEARCH = "/api/search";
+
+    private SpaceCollector spaceCollector;
+    private RestTemplate restTemplate = new RestTemplate(); // Initialize RestTemplate
+
+    public void aPOSTRequestIsMadeToSearchRecordUsingJsonbody(String searchPayload) {
+        try {
+            JSONObject jsonObject = new JSONObject(searchPayload); // Ensure proper JSON format
+
+            // Set the correct Content-Type header
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json"); // Ensure application/json
+
+            // Create HttpEntity with headers and JSON body
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonObject.toString(), headers);
+
+            // Construct the endpoint URL
+            String url = SERVER_URL + SPACE_COLLECTOR_SEARCH;
+            log.info("URL: {}", url);
+
+            // Make the POST request and extract the response
+            ResponseEntity<List<SpaceCollector>> responseEntity = restTemplate.postForEntity(
+                url,
+                requestEntity, // Include the HttpEntity with headers and JSON body
+                (Class<List<SpaceCollector>>) (Object) List.class
+            );
+
+            List<SpaceCollector> spaceCollectorList = responseEntity.getBody();
+            log.info("SpaceCollectorList: {}", spaceCollectorList);
+
+            if (spaceCollectorList != null && !spaceCollectorList.isEmpty()) {
+                this.spaceCollector = spaceCollectorList.get(0);
+                log.info("SpaceCollector: {}", this.spaceCollector);
+            } else {
+                log.warn("No records found.");
+            }
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
+                log.error("415 Unsupported Media Type: Check Content-Type header", e);
+            } else {
+                log.error("HTTP error during POST request", e);
+            }
+        } catch (Exception e) {
+            log.error("Error occurred during POST request", e);
+        }
+    }
+}
