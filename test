@@ -379,3 +379,51 @@ public class CollectionAuditCRUD {
         }
     }
 }
+
+
+
+
+
+public class SpaceCollectorTest {
+    public static void main(String[] args) {
+        // Create a mock SpaceCollector instance
+        SpaceCollector collector = new SpaceCollector(
+            "ssh-key-01",       // sshPublicKey
+            "uname",            // userName
+            "SSH",              // connectionType
+            false,              // enabled
+            "CSV_GIGAMON",      // type
+            "localhost",        // url
+            "1",                // id
+            "/space-shared-storage/destination/",  // outputFilePath
+            "",                 // password
+            "2024-01-01T01:00:00.000", // pollingDuration
+            22,                 // port
+            "ssh-key-01",       // sshPrivateKey
+            "",                 // delimiter
+            "Waiting",          // clusterState
+            "/home/inputdir",   // inputFilePath
+            "2024-01-01T00:00:25.000", // lastAliveTime
+            "CSV GIGAMON"       // fileType
+        );
+
+        // Print out the mock data
+        System.out.println("SpaceCollector Details:");
+        System.out.println("SSH Public Key: " + collector.getSshPublicKey());
+        System.out.println("User Name: " + collector.getUserName());
+        System.out.println("Connection Type: " + collector.getConnectionType());
+        System.out.println("Enabled: " + collector.isEnabled());
+        System.out.println("Type: " + collector.getType());
+        System.out.println("URL: " + collector.getUrl());
+        System.out.println("Output File Path: " + collector.getOutputFilePath());
+        System.out.println("Password: " + collector.getPassword());
+        System.out.println("Polling Duration: " + collector.getPollingDuration());
+        System.out.println("Port: " + collector.getPort());
+        System.out.println("SSH Private Key: " + collector.getSshPrivateKey());
+        System.out.println("Delimiter: " + collector.getDelimiter());
+        System.out.println("Cluster State: " + collector.getClusterState());
+        System.out.println("Input File Path: " + collector.getInputFilePath());
+        System.out.println("Last Alive Time: " + collector.getLastAliveTime());
+        System.out.println("File Type: " + collector.getFileType());
+    }
+}
