@@ -119,25 +119,22 @@ public class TransformerTest {
         assertTrue(jsonObject.isEmpty(), "Expected empty JSON object for class with no fields");
     }
 
-    @Test
-    void testIllegalAccessException() {
-        class RestrictedClass {
-            private final String sensitiveField = "sensitive";
-        }
-
+  @Test
+    void testHandleIllegalAccess() {
         RestrictedClass restricted = new RestrictedClass();
 
-        // Making the field inaccessible to force an IllegalAccessException
-        Field[] fields = RestrictedClass.class.getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(false);  // Attempting to make the field inaccessible
+        Field field;
+        try {
+            field = RestrictedClass.class.getDeclaredField("sensitiveField");
+            field.setAccessible(true);
+            // Force IllegalAccessException by setting read-only final field
+            assertThrows(IllegalAccessException.class, () -> field.set(restricted, "newValue"));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            fail("Unexpected exception during test setup");
         }
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            Transformer.transformToJSONObject(restricted);
-        });
-
-        String expectedMessage = "Error accessing field";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        // Wrap RuntimeException
+        Exception exception = assertThrows(RuntimeException.class, () -> Transformer.transformToJSONObject(restricted));
+        assertTrue(exception.getMessage().contains("Error accessing field"), "Expected specific exception message");
     }
 }
