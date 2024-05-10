@@ -141,3 +141,38 @@ public class TransformerTest {
         assertTrue(exception.getMessage().contains("Error accessing field"), "Expected specific exception message");
     }
 }
+
+
+
+
+
+    static class RestrictedClass {
+        private String accessibleField = "Accessible";
+        
+        // This class simulates an error when accessing this field
+        private Field problematicField;
+
+        public RestrictedClass() {
+            try {
+                problematicField = RestrictedClass.class.getDeclaredField("problematicField");
+                problematicField.setAccessible(false); // Make it "restricted"
+            } catch (NoSuchFieldException e) {
+                fail("Field setup failed");
+            }
+        }
+
+        public void accessProblematicField() {
+            throw new RuntimeException("Problem accessing field");
+        }
+    }
+
+    @Test
+    void testTransformThrowsRuntimeException() {
+        RestrictedClass restricted = new RestrictedClass();
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            restricted.accessProblematicField();
+        });
+
+        assertTrue(exception.getMessage().contains("Problem accessing field"));
+    }
