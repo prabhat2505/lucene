@@ -80,3 +80,64 @@ public class GenericTransformerTest {
         assertEquals("John Doe", jsonObject.getString("name")); // Validate 'name'
     }
 }
+
+
+import org.json.JSONObject;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TransformerTest {
+
+    static class SampleClass {
+        public String publicField = "publicValue";
+        private String privateField = "privateValue";
+        protected int protectedField = 42;
+    }
+
+    static class NoFieldClass {}
+
+    @Test
+    void testTransformToJSONObject() {
+        SampleClass sample = new SampleClass();
+        JSONObject jsonObject = Transformer.transformToJSONObject(sample);
+
+        assertNotNull(jsonObject);
+        assertEquals("publicValue", jsonObject.get("publicField"));
+        assertEquals("privateValue", jsonObject.get("privateField"));
+        assertEquals(42, jsonObject.get("protectedField"));
+    }
+
+    @Test
+    void testTransformWithNoFields() {
+        NoFieldClass noFieldClass = new NoFieldClass();
+        JSONObject jsonObject = Transformer.transformToJSONObject(noFieldClass);
+
+        assertNotNull(jsonObject);
+        assertTrue(jsonObject.isEmpty(), "Expected empty JSON object for class with no fields");
+    }
+
+    @Test
+    void testIllegalAccessException() {
+        class RestrictedClass {
+            private final String sensitiveField = "sensitive";
+        }
+
+        RestrictedClass restricted = new RestrictedClass();
+
+        // Making the field inaccessible to force an IllegalAccessException
+        Field[] fields = RestrictedClass.class.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(false);  // Attempting to make the field inaccessible
+        }
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            Transformer.transformToJSONObject(restricted);
+        });
+
+        String expectedMessage = "Error accessing field";
+        assertTrue(exception.getMessage().contains(expectedMessage));
+    }
+}
