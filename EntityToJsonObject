@@ -90,6 +90,9 @@ import java.lang.reflect.Field;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TransformerTest {
+   static class RestrictedClass {
+        private final String sensitiveField = "sensitive";
+    }
 
     static class SampleClass {
         public String publicField = "publicValue";
