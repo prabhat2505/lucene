@@ -146,15 +146,15 @@ public class TransformerTest {
 
 
 
-    tatic class RestrictedFieldClass {
-        private final String constantField = "constant";
+    static class RestrictedAccessClass {
+        private final String restrictedField = "restricted";
 
-        public RestrictedFieldClass() {
-            // Set a field to be restricted
-            Field constantFieldInstance;
+        // Attempt to set this field to trigger IllegalAccessException
+        public RestrictedAccessClass() {
+            Field field;
             try {
-                constantFieldInstance = RestrictedFieldClass.class.getDeclaredField("constantField");
-                constantFieldInstance.setAccessible(false); // Force restricted access
+                field = RestrictedAccessClass.class.getDeclaredField("restrictedField");
+                field.setAccessible(false); // Simulate restricted access
             } catch (NoSuchFieldException e) {
                 fail("Unexpected NoSuchFieldException");
             }
@@ -162,12 +162,14 @@ public class TransformerTest {
     }
 
     @Test
-    void testTransformToJSONObjectWithRestrictedField() {
-        RestrictedFieldClass restricted = new RestrictedFieldClass();
+    void testTransformToJSONObjectWithRestrictedAccess() {
+        RestrictedAccessClass restricted = new RestrictedAccessClass();
 
-        // The goal is to induce an IllegalAccessException by trying to access an inaccessible field
+        // Attempt to trigger IllegalAccessException by accessing a restricted field
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            Transformer.transformToJSONObject(restricted);
+            Field field = RestrictedAccessClass.class.getDeclaredField("restrictedField");
+            field.setAccessible(false); // Ensure restricted
+            Transformer.transformToJSONObject(restricted); // Expect RuntimeException
         });
 
         assertNotNull(exception);
