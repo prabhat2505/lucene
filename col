@@ -114,3 +114,95 @@ public class JobStatistics {
         System.out.println(stats);
     }
 }
+import java.util.*;
+
+class Job {
+    String id;
+    String collectorId;
+    String processType;
+    String jarId;
+    String job;
+    String flinkJobId;
+    String jobStatus;
+    String inputFilePath;
+    String outputFilePath;
+    String deviceType;
+    String flinkURL;
+    int port;
+    String delimiters;
+    String fileType;
+    String dateReceived;
+    String dateProcessed;
+    Integer noOfRecordsInTheFile;
+    Integer noOfRecordsProcessed;
+    Integer noOfRecordsFailed;
+    String exceptions;
+    String bootstrapServer;
+
+    // Constructor, getters, and setters can be added here
+}
+
+public class JobStatistics {
+
+    public static Map<String, Object> calculateStatistics(List<Job> jobs) {
+        Set<String> devices = new HashSet<>();
+        int filesCollected = 0;
+        int filesTransformed = 0;
+        int recordsCollected = 0;
+        int recordsTransformed = 0;
+        int failedTransformations = 0;
+        int failedCollections = 0;
+
+        for (Job job : jobs) {
+            if (job.getDeviceType() != null) {
+                devices.add(job.getDeviceType());
+            }
+
+            switch (job.getJobStatus()) {
+                case "COLLECTION_SUCCESSFUL":
+                    filesCollected++;
+                    if (job.getNoOfRecordsInTheFile() != null) {
+                        recordsCollected += job.getNoOfRecordsInTheFile();
+                    }
+                    break;
+                case "FLINK_JOB_SUCCESSFUL":
+                    filesTransformed++;
+                    if (job.getNoOfRecordsProcessed() != null) {
+                        recordsTransformed += job.getNoOfRecordsProcessed();
+                    }
+                    break;
+                case "FLINK_JOB_FAILED":
+                    failedTransformations++;
+                    break;
+                case "COLLECTION_FAILED":
+                    failedCollections++;
+                    break;
+                default:
+                    // Handle other statuses if needed
+                    break;
+            }
+        }
+
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("Devices", devices.size());
+        statistics.put("Files Collected", filesCollected);
+        statistics.put("Files Transformed", filesTransformed);
+        statistics.put("Records Collected", recordsCollected);
+        statistics.put("Records Transformed", recordsTransformed);
+        statistics.put("Failed Transformations", failedTransformations);
+        statistics.put("Failed Collections", failedCollections);
+
+        return statistics;
+    }
+
+    public static void main(String[] args) {
+        // Example usage
+        List<Job> jobs = new ArrayList<>();
+
+        // Populate the jobs list with Job objects
+        // jobs.add(new Job(...));
+
+        Map<String, Object> stats = calculateStatistics(jobs);
+        System.out.println(stats);
+    }
+}
