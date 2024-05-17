@@ -28,3 +28,89 @@ public class OutputDTO {
 
     // Constructors, getters, and setters
 }
+
+
+import java.util.*;
+
+class Job {
+    String id;
+    String collectorId;
+    String processType;
+    String jarId;
+    String job;
+    String flinkJobId;
+    String jobStatus;
+    String inputFilePath;
+    String outputFilePath;
+    String deviceType;
+    String flinkURL;
+    int port;
+    String delimiters;
+    String fileType;
+    String dateReceived;
+    String dateProcessed;
+    Integer noOfRecordsInTheFile;
+    Integer noOfRecordsProcessed;
+    Integer noOfRecordsFailed;
+    String exceptions;
+    String bootstrapServer;
+
+    // Add getters and setters here or use Lombok for simplicity
+}
+
+public class JobStatistics {
+
+    public static Map<String, Object> calculateStatistics(List<Job> jobs) {
+        Set<String> devices = new HashSet<>();
+        int filesCollected = 0;
+        int filesTransformed = 0;
+        int recordsCollected = 0;
+        int recordsTransformed = 0;
+        int failedTransformations = 0;
+        int failedCollections = 0;
+
+        for (Job job : jobs) {
+            if (job.getJobStatus().equals("COLLECTION_SUCCESSFUL")) {
+                devices.add(job.getDeviceType());
+                filesCollected++;
+                if (job.getNoOfRecordsInTheFile() != null) {
+                    recordsCollected += job.getNoOfRecordsInTheFile();
+                }
+            }
+            if (job.getJobStatus().equals("FLINK_JOB_SUCCESSFUL")) {
+                filesTransformed++;
+                if (job.getNoOfRecordsProcessed() != null) {
+                    recordsTransformed += job.getNoOfRecordsProcessed();
+                }
+            }
+            if (job.getJobStatus().equals("FLINK_JOB_FAILED")) {
+                failedTransformations++;
+            }
+            if (job.getJobStatus().equals("COLLECTION_FAILED")) {
+                failedCollections++;
+            }
+        }
+
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("Devices", devices.size());
+        statistics.put("Files Collected", filesCollected);
+        statistics.put("Files Transformed", filesTransformed);
+        statistics.put("Records Collected", recordsCollected);
+        statistics.put("Records Transformed", recordsTransformed);
+        statistics.put("Failed Transformations", failedTransformations);
+        statistics.put("Failed Collections", failedCollections);
+
+        return statistics;
+    }
+
+    public static void main(String[] args) {
+        // Create a list of Job objects and call calculateStatistics() with it
+        List<Job> jobs = new ArrayList<>();
+
+        // Populate the jobs list with Job objects
+        // jobs.add(new Job(...));
+
+        Map<String, Object> stats = calculateStatistics(jobs);
+        System.out.println(stats);
+    }
+}
