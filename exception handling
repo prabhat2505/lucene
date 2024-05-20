@@ -1,0 +1,81 @@
+public class InvalidFilterException extends RuntimeException {
+    public InvalidFilterException(String message) {
+        super(message);
+    }
+}
+
+
+
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(InvalidFilterException.class)
+    public ResponseEntity<String> handleInvalidFilterException(InvalidFilterException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGenericException(Exception ex) {
+        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class FilterService {
+
+    public void validateFilter(FilterDTO filterDTO) {
+        boolean isHostPresent = filterDTO.getHost() != null && !filterDTO.getHost().isEmpty();
+        boolean isDeviceTypePresent = filterDTO.getDeviceType() != null && !filterDTO.getDeviceType().isEmpty();
+        boolean isFileTypePresent = filterDTO.getFileType() != null && !filterDTO.getFileType().isEmpty();
+
+        if (!(isHostPresent || isDeviceTypePresent || isFileTypePresent)) {
+            throw new InvalidFilterException("At least one of host, deviceType, or fileType must be provided");
+        }
+
+        if (filterDTO.getFromDate() == null || filterDTO.getToDate() == null) {
+            throw new InvalidFilterException("Both fromDate and toDate are mandatory");
+        }
+
+        if (filterDTO.getFromDate().isAfter(filterDTO.getToDate())) {
+            throw new InvalidFilterException("fromDate must be before or equal to toDate");
+        }
+    }
+
+    public void search(FilterDTO filterDTO) {
+        // Implement your search logic here
+    }
+}
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/filters")
+public class FilterController {
+
+    @Autowired
+    private FilterService filterService;
+
+    @PostMapping("/search")
+    public ResponseEntity<String> search(@RequestBody FilterDTO filterDTO) {
+        filterService.validateFilter(filterDTO);
+        filterService.search(filterDTO);
+        return new ResponseEntity<>("Search successful", HttpStatus.OK);
+    }
+}
+
+
+spring.jackson.date-format=yyyy-MM-dd
