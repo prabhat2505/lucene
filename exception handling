@@ -1,4 +1,4 @@
-public class InvalidFilterException extends RuntimeException {
+9public class InvalidFilterException extends RuntimeException {
     public InvalidFilterException(String message) {
         super(message);
     }
@@ -79,3 +79,19 @@ public class FilterController {
 
 
 spring.jackson.date-format=yyyy-MM-dd
+
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+public class InvalidFilterExceptionTest {
+
+    @Test
+    public void testInvalidFilterExceptionMessage() {
+        String errorMessage = "Invalid filter parameters";
+        InvalidFilterException exception = new InvalidFilterException(errorMessage);
+
+        assertEquals(errorMessage, exception.getMessage());
+    }
+}
