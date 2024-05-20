@@ -1,4 +1,4 @@
-import com.fasterxml.jackson.annotation.JsonFormat;
+7import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDate;
 
@@ -204,5 +204,87 @@ public class JobStatistics {
 
         Map<String, Object> stats = calculateStatistics(jobs);
         System.out.println(stats);
+    }
+}
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import java.util.*;
+
+public class JobStatisticsTest {
+
+    @Test
+    public void testCalculateStatistics() {
+        List<Job> jobs = new ArrayList<>();
+        
+        Job job1 = new Job();
+        job1.setJobStatus("COLLECTION_SUCCESSFUL");
+        job1.setDeviceType("Device1");
+        job1.setNoOfRecordsInTheFile(50);
+        jobs.add(job1);
+
+        Job job2 = new Job();
+        job2.setJobStatus("COLLECTION_SUCCESSFUL");
+        job2.setDeviceType("Device2");
+        job2.setNoOfRecordsInTheFile(70);
+        jobs.add(job2);
+
+        Job job3 = new Job();
+        job3.setJobStatus("FLINK_JOB_SUCCESSFUL");
+        job3.setNoOfRecordsProcessed(30);
+        jobs.add(job3);
+
+        Job job4 = new Job();
+        job4.setJobStatus("FLINK_JOB_FAILED");
+        jobs.add(job4);
+
+        Job job5 = new Job();
+        job5.setJobStatus("COLLECTION_FAILED");
+        jobs.add(job5);
+
+        Map<String, Object> stats = JobStatistics.calculateStatistics(jobs);
+
+        assertEquals(2, stats.get("Devices"));
+        assertEquals(2, stats.get("Files Collected"));
+        assertEquals(1, stats.get("Files Transformed"));
+        assertEquals(120, stats.get("Records Collected"));
+        assertEquals(30, stats.get("Records Transformed"));
+        assertEquals(1, stats.get("Failed Transformations"));
+        assertEquals(1, stats.get("Failed Collections"));
+    }
+
+    @Test
+    public void testCalculateStatisticsWithNoJobs() {
+        List<Job> jobs = new ArrayList<>();
+        
+        Map<String, Object> stats = JobStatistics.calculateStatistics(jobs);
+
+        assertEquals(0, stats.get("Devices"));
+        assertEquals(0, stats.get("Files Collected"));
+        assertEquals(0, stats.get("Files Transformed"));
+        assertEquals(0, stats.get("Records Collected"));
+        assertEquals(0, stats.get("Records Transformed"));
+        assertEquals(0, stats.get("Failed Transformations"));
+        assertEquals(0, stats.get("Failed Collections"));
+    }
+
+    @Test
+    public void testCalculateStatisticsWithNullValues() {
+        List<Job> jobs = new ArrayList<>();
+
+        Job job = new Job();
+        job.setJobStatus("COLLECTION_SUCCESSFUL");
+        job.setDeviceType(null);
+        job.setNoOfRecordsInTheFile(null);
+        jobs.add(job);
+
+        Map<String, Object> stats = JobStatistics.calculateStatistics(jobs);
+
+        assertEquals(0, stats.get("Devices"));
+        assertEquals(1, stats.get("Files Collected"));
+        assertEquals(0, stats.get("Files Transformed"));
+        assertEquals(0, stats.get("Records Collected"));
+        assertEquals(0, stats.get("Records Transformed"));
+        assertEquals(0, stats.get("Failed Transformations"));
+        assertEquals(0, stats.get("Failed Collections"));
     }
 }
