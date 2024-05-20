@@ -95,3 +95,63 @@ public class InvalidFilterExceptionTest {
         assertEquals(errorMessage, exception.getMessage());
     }
 }
+
+
+
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+
+public class FilterServiceTest {
+
+    private FilterService filterService;
+
+    @BeforeEach
+    public void setUp() {
+        filterService = new FilterService();
+    }
+
+    @Test
+    public void testValidateFilterSuccess() {
+        FilterDTO filterDTO = new FilterDTO();
+        filterDTO.setHost("localhost");
+        filterDTO.setFromDate(LocalDate.of(2024, 1, 1));
+        filterDTO.setToDate(LocalDate.of(2024, 12, 31));
+
+        assertDoesNotThrow(() -> filterService.validateFilter(filterDTO));
+    }
+
+    @Test
+    public void testValidateFilterNoMandatoryFields() {
+        FilterDTO filterDTO = new FilterDTO();
+        filterDTO.setFromDate(LocalDate.of(2024, 1, 1));
+        filterDTO.setToDate(LocalDate.of(2024, 12, 31));
+
+        InvalidFilterException exception = assertThrows(InvalidFilterException.class, () -> filterService.validateFilter(filterDTO));
+        assertEquals("At least one of host, deviceType, or fileType must be provided", exception.getMessage());
+    }
+
+    @Test
+    public void testValidateFilterMissingDates() {
+        FilterDTO filterDTO = new FilterDTO();
+        filterDTO.setHost("localhost");
+
+        InvalidFilterException exception = assertThrows(InvalidFilterException.class, () -> filterService.validateFilter(filterDTO));
+        assertEquals("Both fromDate and toDate are mandatory", exception.getMessage());
+    }
+
+    @Test
+    public void testValidateFilterInvalidDateRange() {
+        FilterDTO filterDTO = new FilterDTO();
+        filterDTO.setHost("localhost");
+        filterDTO.setFromDate(LocalDate.of(2024, 12, 31));
+        filterDTO.setToDate(LocalDate.of(2024, 1, 1));
+
+        InvalidFilterException exception = assertThrows(InvalidFilterException.class, () -> filterService.validateFilter(filterDTO));
+        assertEquals("fromDate must be before or equal to toDate", exception.getMessage());
+    }
+}
