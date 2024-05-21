@@ -1,0 +1,134 @@
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+public class FilterServiceTest {
+
+    private FilterService filterService;
+
+    @BeforeEach
+    public void setUp() {
+        filterService = new FilterService();
+    }
+
+    @Test
+    public void testIsRecordExistAllCriteriaMatch() {
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost("localhost");
+        filterDTO.setDeviceType("Router");
+        filterDTO.setFileType("Log");
+        filterDTO.setFromDate(LocalDate.of(2024, 1, 1));
+        filterDTO.setToDate(LocalDate.of(2024, 12, 31));
+
+        CollectionAudit collectionAudit = new CollectionAudit();
+        collectionAudit.setUrl("localhost");
+        collectionAudit.setDeviceType("Router");
+        collectionAudit.setFileType("LogFile");
+        collectionAudit.setDateProcessed(LocalDateTime.of(2024, 6, 1, 12, 0));
+        collectionAudit.setCollectorId("123");
+
+        Set<String> idSets = new HashSet<>();
+        idSets.add("124");
+
+        boolean result = filterService.isRecordExist(filterDTO, collectionAudit, idSets);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsRecordExistDateOutOfRange() {
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost("localhost");
+        filterDTO.setDeviceType("Router");
+        filterDTO.setFileType("Log");
+        filterDTO.setFromDate(LocalDate.of(2024, 1, 1));
+        filterDTO.setToDate(LocalDate.of(2024, 12, 31));
+
+        CollectionAudit collectionAudit = new CollectionAudit();
+        collectionAudit.setUrl("localhost");
+        collectionAudit.setDeviceType("Router");
+        collectionAudit.setFileType("LogFile");
+        collectionAudit.setDateProcessed(LocalDateTime.of(2025, 1, 1, 12, 0));
+        collectionAudit.setCollectorId("123");
+
+        Set<String> idSets = new HashSet<>();
+        idSets.add("124");
+
+        boolean result = filterService.isRecordExist(filterDTO, collectionAudit, idSets);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testIsRecordExistFileTypeMismatch() {
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost("localhost");
+        filterDTO.setDeviceType("Router");
+        filterDTO.setFileType("Log");
+        filterDTO.setFromDate(LocalDate.of(2024, 1, 1));
+        filterDTO.setToDate(LocalDate.of(2024, 12, 31));
+
+        CollectionAudit collectionAudit = new CollectionAudit();
+        collectionAudit.setUrl("localhost");
+        collectionAudit.setDeviceType("Router");
+        collectionAudit.setFileType("ErrorFile");
+        collectionAudit.setDateProcessed(LocalDateTime.of(2024, 6, 1, 12, 0));
+        collectionAudit.setCollectorId("123");
+
+        Set<String> idSets = new HashSet<>();
+        idSets.add("124");
+
+        boolean result = filterService.isRecordExist(filterDTO, collectionAudit, idSets);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testIsRecordExistDeviceTypeMatchInIdSet() {
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost("localhost");
+        filterDTO.setDeviceType("Router");
+        filterDTO.setFileType("Log");
+        filterDTO.setFromDate(LocalDate.of(2024, 1, 1));
+        filterDTO.setToDate(LocalDate.of(2024, 12, 31));
+
+        CollectionAudit collectionAudit = new CollectionAudit();
+        collectionAudit.setUrl("localhost");
+        collectionAudit.setDeviceType("Router");
+        collectionAudit.setFileType("LogFile");
+        collectionAudit.setDateProcessed(LocalDateTime.of(2024, 6, 1, 12, 0));
+        collectionAudit.setCollectorId("123");
+
+        Set<String> idSets = new HashSet<>();
+        idSets.add("123");
+
+        boolean result = filterService.isRecordExist(filterDTO, collectionAudit, idSets);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testIsRecordExistHostMismatch() {
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost("remotehost");
+        filterDTO.setDeviceType("Router");
+        filterDTO.setFileType("Log");
+        filterDTO.setFromDate(LocalDate.of(2024, 1, 1));
+        filterDTO.setToDate(LocalDate.of(2024, 12, 31));
+
+        CollectionAudit collectionAudit = new CollectionAudit();
+        collectionAudit.setUrl("localhost");
+        collectionAudit.setDeviceType("Router");
+        collectionAudit.setFileType("LogFile");
+        collectionAudit.setDateProcessed(LocalDateTime.of(2024, 6, 1, 12, 0));
+        collectionAudit.setCollectorId("123");
+
+        Set<String> idSets = new HashSet<>();
+        idSets.add("124");
+
+        boolean result = filterService.isRecordExist(filterDTO, collectionAudit, idSets);
+        assertFalse(result);
+    }
+}
