@@ -270,3 +270,33 @@ public class FilterServiceTest {
         assertFalse(result);
     }
 }
+
+
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class FilterService {
+
+    public void validateFilter(CollectionAuditFilterDTO filterDTO) throws InvalidFilterException {
+        boolean isHostPresent = filterDTO.getHost() != null && !filterDTO.getHost().isEmpty();
+        boolean isDeviceTypePresent = filterDTO.getDeviceType() != null && !filterDTO.getDeviceType().isEmpty();
+        boolean isFileTypePresent = filterDTO.getFileType() != null && !filterDTO.getFileType().isEmpty();
+
+        if (!isHostPresent && !isDeviceTypePresent && !isFileTypePresent) {
+            throw new InvalidFilterException("At least one of host, deviceType, or fileType must be provided.");
+        }
+
+        if (filterDTO.getFromDate() == null || filterDTO.getToDate() == null) {
+            throw new InvalidFilterException("Both fromDate and toDate must be provided.");
+        }
+
+        // Parse fromDate and toDate strings into LocalDate objects
+        LocalDate parsedFromDate = LocalDate.parse(filterDTO.getFromDate(), DateTimeFormatter.ISO_DATE);
+        LocalDate parsedToDate = LocalDate.parse(filterDTO.getToDate(), DateTimeFormatter.ISO_DATE);
+
+        if (parsedFromDate.isAfter(parsedToDate)) {
+            throw new InvalidFilterException("fromDate must be before or equal to toDate.");
+        }
+    }
+}
