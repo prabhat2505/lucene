@@ -291,3 +291,50 @@ public class FilterControllerTest {
         verify(filterService, times(0)).search(any(FilterDTO.class));
     }
 }
+
+
+
+
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
+public class DateEqualityChecker {
+
+    public static void main(String[] args) {
+        String inputDate = "2023-05-20"; // Example input date in yyyy-MM-dd format
+        String targetDateTime = "2023-05-20 00:00:00.000"; // Target date and time in yyyy-MM-dd HH:mm:ss.SSS format
+
+        boolean isEqual = checkDateEquality(inputDate, targetDateTime);
+        if (isEqual) {
+            System.out.println("The input date matches the target date and time.");
+        } else {
+            System.out.println("The input date does not match the target date and time.");
+        }
+    }
+
+    public static boolean checkDateEquality(String inputDate, String targetDateTime) {
+        try {
+            // Define formatters for input date and target date-time
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter targetFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
+            // Parse the input date
+            LocalDate date = LocalDate.parse(inputDate, inputFormatter);
+
+            // Convert to LocalDateTime by adding start of the day time (00:00:00.000)
+            LocalDateTime dateTime = date.atStartOfDay();
+
+            // Format the parsed date to the desired pattern
+            String formattedDate = dateTime.format(targetFormatter);
+
+            // Compare formatted date with target date-time
+            return formattedDate.equals(targetDateTime);
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format: " + e.getMessage());
+            return false;
+        }
+    }
+}
