@@ -1,0 +1,17 @@
+public class JsonStringBuilder {
+
+    public static String createJsonString(String gteValue, String lteValue) {
+        String jsonString = String.format(
+            "(\"query\" (\"bool\" (\"must\" [{\"range\" [\"createdAt\" (\"gte\" \"%s\",\"lte\" \"%s\")}]}}}}}",
+            gteValue, lteValue
+        );
+        return jsonString;
+    }
+
+    public static void main(String[] args) {
+        String gteValue = "2014-01-30T00:00:00.101";
+        String lteValue = "2014-01-30T00:00:00.103";
+        String jsonString = createJsonString(gteValue, lteValue);
+        System.out.println(jsonString);
+    }
+}
