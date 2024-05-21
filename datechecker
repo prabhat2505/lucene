@@ -1,0 +1,95 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
+public class DateRangeChecker {
+
+    public static boolean isDateWithinRange(String inputDate, String startDate, String endDate) {
+        try {
+            // Define the formatter for the input date format
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            
+            // Parse the input date, start date, and end date
+            LocalDate date = LocalDate.parse(inputDate, formatter);
+            LocalDate start = LocalDate.parse(startDate, formatter);
+            LocalDate end = LocalDate.parse(endDate, formatter);
+            
+            // Check if the date is within the range [start, end]
+            return (date.isEqual(start) || date.isAfter(start)) && (date.isEqual(end) || date.isBefore(end));
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format: " + e.getMessage());
+            return false;
+        }
+    }
+}
+
+
+
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class DateRangeCheckerTest {
+
+    @Test
+    public void testDateWithinRange() {
+        String inputDate = "2023-05-20";
+        String startDate = "2023-05-01";
+        String endDate = "2023-05-31";
+        
+        boolean result = DateRangeChecker.isDateWithinRange(inputDate, startDate, endDate);
+        assertTrue(result, "The input date should be within the date range.");
+    }
+
+    @Test
+    public void testDateOutsideRange_BeforeStart() {
+        String inputDate = "2023-04-30";
+        String startDate = "2023-05-01";
+        String endDate = "2023-05-31";
+        
+        boolean result = DateRangeChecker.isDateWithinRange(inputDate, startDate, endDate);
+        assertFalse(result, "The input date should be outside the date range (before start).");
+    }
+
+    @Test
+    public void testDateOutsideRange_AfterEnd() {
+        String inputDate = "2023-06-01";
+        String startDate = "2023-05-01";
+        String endDate = "2023-05-31";
+        
+        boolean result = DateRangeChecker.isDateWithinRange(inputDate, startDate, endDate);
+        assertFalse(result, "The input date should be outside the date range (after end).");
+    }
+
+    @Test
+    public void testDateEqualToStartDate() {
+        String inputDate = "2023-05-01";
+        String startDate = "2023-05-01";
+        String endDate = "2023-05-31";
+        
+        boolean result = DateRangeChecker.isDateWithinRange(inputDate, startDate, endDate);
+        assertTrue(result, "The input date should be within the date range (equal to start date).");
+    }
+
+    @Test
+    public void testDateEqualToEndDate() {
+        String inputDate = "2023-05-31";
+        String startDate = "2023-05-01";
+        String endDate = "2023-05-31";
+        
+        boolean result = DateRangeChecker.isDateWithinRange(inputDate, startDate, endDate);
+        assertTrue(result, "The input date should be within the date range (equal to end date).");
+    }
+
+    @Test
+    public void testDateInvalidFormat() {
+        String inputDate = "2023/05/20"; // Invalid format
+        String startDate = "2023-05-01";
+        String endDate = "2023-05-31";
+        
+        boolean result = DateRangeChecker.isDateWithinRange(inputDate, startDate, endDate);
+        assertFalse(result, "The input date with invalid format should not be within the date range.");
+    }
+}
