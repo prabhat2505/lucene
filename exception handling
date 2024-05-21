@@ -1,4 +1,4 @@
-7
+87
 9public class InvalidFilterException extends RuntimeException {
     public InvalidFilterException(String message) {
         super(message);
@@ -336,5 +336,53 @@ public class DateEqualityChecker {
             System.out.println("Invalid date format: " + e.getMessage());
             return false;
         }
+    }
+}
+
+
+
+
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class DateEqualityCheckerTest {
+
+    @Test
+    public void testDateEquality_MatchingDate() {
+        String inputDate = "2023-05-20";
+        String targetDateTime = "2023-05-20 00:00:00.000";
+        
+        boolean result = DateEqualityChecker.checkDateEquality(inputDate, targetDateTime);
+        assertTrue(result, "The input date should match the target date and time.");
+    }
+
+    @Test
+    public void testDateEquality_NonMatchingDate() {
+        String inputDate = "2023-05-21";
+        String targetDateTime = "2023-05-20 00:00:00.000";
+        
+        boolean result = DateEqualityChecker.checkDateEquality(inputDate, targetDateTime);
+        assertFalse(result, "The input date should not match the target date and time.");
+    }
+
+    @Test
+    public void testDateEquality_InvalidInputFormat() {
+        String inputDate = "2023/05/20"; // Invalid format
+        String targetDateTime = "2023-05-20 00:00:00.000";
+        
+        boolean result = DateEqualityChecker.checkDateEquality(inputDate, targetDateTime);
+        assertFalse(result, "The input date with invalid format should not match the target date and time.");
+    }
+
+    @Test
+    public void testDateEquality_InvalidTargetFormat() {
+        String inputDate = "2023-05-20";
+        String targetDateTime = "2023/05/20 00:00:00.000"; // Invalid format
+        
+        boolean result = DateEqualityChecker.checkDateEquality(inputDate, targetDateTime);
+        assertFalse(result, "The target date with invalid format should not match the input date.");
     }
 }
