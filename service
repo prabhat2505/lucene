@@ -300,3 +300,62 @@ public class FilterService {
         }
     }
 }
+
+
+
+
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+@SpringBootTest
+public class FilterServiceTest {
+
+    private FilterService filterService;
+    private LuceneRepository luceneRepository;
+
+    @BeforeEach
+    public void setUp() {
+        luceneRepository = mock(LuceneRepository.class);
+        filterService = new FilterService();
+        filterService.setLucenerepo(luceneRepository);  // Assuming there's a setter or constructor to inject the repo
+    }
+
+    @Test
+    public void testGetSummary() throws JSONException {
+        // Arrange
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost("localhost");
+        filterDTO.setDeviceType("Router");
+        filterDTO.setFileType("Log");
+        filterDTO.setFromDate("2024-06-09");
+        filterDTO.setToDate("2024-12-31");
+
+        List<CollectionAudit> mockCollectionAuditList = new ArrayList<>();
+        CollectionAudit audit = new CollectionAudit();
+        audit.setUrl("localhost");
+        audit.setDeviceType("Router");
+        audit.setFileType("Log");
+        audit.setDateProcessed("2024-05-13T08:10:26.033");
+        audit.setCollectorId("123");
+        mockCollectionAuditList.add(audit);
+
+        when(luceneRepository.findByQuery(anyString())).thenReturn(mockCollectionAuditList);
+
+        // Act
+        CollectionAuditSummaryDTO result = filterService.getSummary(filterDTO);
+
+        // Assert
+        assertNotNull(result);
+        verify(luceneRepository, times(1)).findByQuery(anyString());
+    }
+}
