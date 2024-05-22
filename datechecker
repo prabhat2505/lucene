@@ -250,3 +250,45 @@ public class DateConverter {
         System.out.println(convertedDate); // Output: 2024-07-09T00:00:000
     }
 }
+
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class DateConverterTest {
+
+    @Test
+    public void testConvertDate() {
+        // Test case 1: Typical date conversion
+        String inputDate = "2024-07-09";
+        String expectedOutput = "2024-07-09T00:00:00.000";
+        String actualOutput = DateConverter.convertDate(inputDate);
+        assertEquals(expectedOutput, actualOutput, "The date conversion did not produce the expected output.");
+
+        // Test case 2: Earliest possible date
+        inputDate = "0000-01-01";
+        expectedOutput = "0000-01-01T00:00:00.000";
+        actualOutput = DateConverter.convertDate(inputDate);
+        assertEquals(expectedOutput, actualOutput, "The date conversion did not handle the earliest possible date correctly.");
+
+        // Test case 3: Latest possible date
+        inputDate = "9999-12-31";
+        expectedOutput = "9999-12-31T00:00:00.000";
+        actualOutput = DateConverter.convertDate(inputDate);
+        assertEquals(expectedOutput, actualOutput, "The date conversion did not handle the latest possible date correctly.");
+
+        // Test case 4: Leap year date
+        inputDate = "2020-02-29";
+        expectedOutput = "2020-02-29T00:00:00.000";
+        actualOutput = DateConverter.convertDate(inputDate);
+        assertEquals(expectedOutput, actualOutput, "The date conversion did not handle a leap year date correctly.");
+
+        // Test case 5: Invalid date format
+        inputDate = "2024/07/09";
+        expectedOutput = "1970-01-01T00:00:00.000"; // Default value
+        actualOutput = DateConverter.convertDate(inputDate);
+        assertEquals(expectedOutput, actualOutput, "The date conversion did not return the default value for an invalid date format.");
+    }
+}
