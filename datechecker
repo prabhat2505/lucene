@@ -4,23 +4,35 @@ import java.time.format.DateTimeParseException;
 
 public class DateRangeChecker {
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
+public class DateRangeChecker {
+
     public static boolean isDateWithinRange(String inputDate, String startDate, String endDate) {
         try {
-            // Define the formatter for the input date format
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            // Define formatters for the input date-time and start/end dates
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:sss");
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             
-            // Parse the input date, start date, and end date
-            LocalDate date = LocalDate.parse(inputDate, formatter);
-            LocalDate start = LocalDate.parse(startDate, formatter);
-            LocalDate end = LocalDate.parse(endDate, formatter);
+            // Parse the input date-time
+            LocalDateTime dateTime = LocalDateTime.parse(inputDate, dateTimeFormatter);
             
-            // Check if the date is within the range [start, end]
-            return (date.isEqual(start) || date.isAfter(start)) && (date.isEqual(end) || date.isBefore(end));
+            // Parse the start and end dates
+            LocalDateTime start = LocalDateTime.parse(startDate, dateFormatter.atStartOfDay().format(dateTimeFormatter));
+            LocalDateTime end = LocalDateTime.parse(endDate, dateFormatter.atTime(23, 59, 59, 999_999_999).format(dateTimeFormatter));
+            
+            // Check if the input date-time is within the range [startDateTime, endDateTime]
+            return (dateTime.isEqual(start) || dateTime.isAfter(start)) && 
+                   (dateTime.isEqual(end) || dateTime.isBefore(end));
         } catch (DateTimeParseException e) {
             System.out.println("Invalid date format: " + e.getMessage());
             return false;
         }
     }
+}
+
 }
 
 
@@ -201,5 +213,35 @@ public class DateRangeCheckerTest {
         
         boolean result = DateRangeChecker.isDateWithinRange(inputDate, startDate, endDate);
         assertFalse(result, "The input date with invalid format should not be within the date range.");
+    }
+}
+
+
+==================================================Date converter=======================================
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class DateConverter {
+
+    public static String convertDate(String date) {
+        // Define the input and output date formatters
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:sss");
+
+        // Parse the input date
+        LocalDate localDate = LocalDate.parse(date, inputFormatter);
+        
+        // Convert to LocalDateTime at the start of the day
+        LocalDateTime localDateTime = localDate.atStartOfDay();
+
+        // Format the LocalDateTime to the output format
+        return localDateTime.format(outputFormatter);
+    }
+
+    public static void main(String[] args) {
+        String date = "2024-07-09";
+        String convertedDate = convertDate(date);
+        System.out.println(convertedDate); // Output: 2024-07-09T00:00:000
     }
 }
