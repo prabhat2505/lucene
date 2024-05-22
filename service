@@ -359,3 +359,70 @@ public class FilterServiceTest {
         verify(luceneRepository, times(1)).findByQuery(anyString());
     }
 }
+
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+@SpringBootTest
+public class FilterServiceTest {
+
+    @Mock
+    private LuceneRepository luceneRepository;
+
+    @InjectMocks
+    private FilterService filterService;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    public void testGetSummary() {
+        // Arrange
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost("localhost");
+        filterDTO.setDeviceType("Router");
+        filterDTO.setFileType("Log");
+        filterDTO.setFromDate("2024-06-09");
+        filterDTO.setToDate("2024-12-31");
+
+        List<CollectionAudit> mockCollectionAuditList = new ArrayList<>();
+        CollectionAudit audit = new CollectionAudit();
+        audit.setUrl("localhost");
+        audit.setDeviceType("Router");
+        audit.setFileType("Log");
+        audit.setDateProcessed("2024-05-13T08:10:26.033");
+        audit.setCollectorId("123");
+        mockCollectionAuditList.add(audit);
+
+        when(luceneRepository.findByQuery(anyString())).thenReturn(mockCollectionAuditList);
+
+        // Act
+        CollectionAuditSummaryDTO result = filterService.getSummary(filterDTO);
+
+        // Assert
+        assertNotNull(result);
+        verify(luceneRepository, times(1)).findByQuery(anyString());
+    }
+
+    // Mock DateTimeUtility class to convert dates to ISO format
+    static class DateTimeUtility {
+        public static String convertDateToISO(String date) {
+            // Mock conversion logic
+            return date + "T00:00:00.000Z";
+        }
+    }
+}
