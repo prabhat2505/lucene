@@ -15,3 +15,45 @@ public class JsonStringBuilder {
         System.out.println(jsonString);
     }
 }
+
+
+public class DateRangeQueryBuilder {
+
+    public static String createDateRangeQuery(String gte, String lte) {
+        // Define the JSON template with placeholders for gte and lte
+        String jsonTemplate = "{"
+                + "\"query\" : {"
+                + "  \"bool\" : {"
+                + "    \"must\" : [ {"
+                + "      \"range\" : {"
+                + "        \"createdAt\" : {"
+                + "          \"gte\" : \"%s\","
+                + "          \"lte\" : \"%s\""
+                + "        }"
+                + "      }"
+                + "    } ]"
+                + "  }"
+                + "}"
+                + "}";
+
+        // Validate the date format
+        try {
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+            LocalDateTime.parse(gte, dateTimeFormatter);
+            LocalDateTime.parse(lte, dateTimeFormatter);
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format: " + e.getMessage());
+            return "{}"; // Return an empty JSON object in case of an error
+        }
+
+        // Use String.format to replace placeholders with actual values
+        return String.format(jsonTemplate, gte, lte);
+    }
+
+    public static void main(String[] args) {
+        String gte = "2014-01-30T00:00:00.101";
+        String lte = "2014-01-30T00:00:00.103";
+        String query = createDateRangeQuery(gte, lte);
+        System.out.println(query);
+    }
+}
