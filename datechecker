@@ -227,18 +227,23 @@ public class DateConverter {
     public static String convertDate(String date) {
         // Define the input and output date formatters
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:sss");
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-        // Parse the input date
-        LocalDate localDate = LocalDate.parse(date, inputFormatter);
-        
-        // Convert to LocalDateTime at the start of the day
-        LocalDateTime localDateTime = localDate.atStartOfDay();
+        try {
+            // Parse the input date
+            LocalDate localDate = LocalDate.parse(date, inputFormatter);
+            
+            // Convert to LocalDateTime at the start of the day
+            LocalDateTime localDateTime = localDate.atStartOfDay();
 
-        // Format the LocalDateTime to the output format
-        return localDateTime.format(outputFormatter);
+            // Format the LocalDateTime to the output format
+            return localDateTime.format(outputFormatter);
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format: " + e.getMessage());
+            // Return the default value in case of exception
+            return "1970-01-01T00:00:00.000";
+        }
     }
-
     public static void main(String[] args) {
         String date = "2024-07-09";
         String convertedDate = convertDate(date);
