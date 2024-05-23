@@ -1,4 +1,4 @@
-import io.cucumber.java.en.Given;
+iimport io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.And;
@@ -307,3 +307,38 @@ public class FilterCollectionAuditStepDefinitions {
         }
     }
 }
+
+
+
+
+
+Feature: Collection Audit Filter and Summary
+
+  Scenario: Filter collection audits by job status
+    Given the following collection audit records
+      | id                                   | jobStatus              | dateProcessed          | fileType     | host           | deviceType |
+      | 1                                    | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033| CSV GIGAMON  | 10.134.134.115 | type1      |
+      | 2                                    | FLINK_JOB_FAILED       | 2024-05-13T08:15:26.033| CSV GIGAMON  | 10.134.134.115 | type1      |
+    When I filter collection audits by job status "COLLECTION_SUCCESSFUL"
+    Then I should get the following collection audit summary
+      | Devices | Files Collected | Files Transformed | Records Collected | Records Transformed | Failed Transformations | Failed Collections |
+      | 1       | 1               | 1                 | 100               | 50                  | 0                      | 0                  |
+
+  Scenario: Filter collection audits by date range
+    Given the following collection audit records
+      | id                                   | jobStatus              | dateProcessed          | fileType     | host           | deviceType |
+      | 1                                    | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033| CSV GIGAMON  | 10.134.134.115 | type1      |
+      | 2                                    | FLINK_JOB_FAILED       | 2024-05-13T08:15:26.033| CSV GIGAMON  | 10.134.134.115 | type1      |
+    When I filter collection audits by date range from "2024-05-13" to "2024-05-14"
+    Then I should get the following collection audit summary
+      | Devices | Files Collected | Files Transformed | Records Collected | Records Transformed | Failed Transformations | Failed Collections |
+      | 1       | 2               | 1                 | 200               | 100                 | 1                      | 0                  |
+
+  Scenario: Filter collection audits by multiple criteria
+    Given the following collection audit records
+      | id                                   | jobStatus              | dateProcessed          | fileType     | host           | deviceType |
+      | 1                                    | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033| CSV GIGAMON  | 10.134.134.115 | type1      |
+      | 2                                    | FLINK_JOB_FAILED       | 2024-05-13T08:15:26.033| CSV GIGAMON  | 10.134.134.115 | type1      |
+    When I filter collection audits by host "10.134.134.115", deviceType "type1", fileType "CSV GIGAMON", from date "2024-05-13" to date "2024-05-14"
+    Then I should get the following collection audit summary
+      | Devices | Files Collected | Files
