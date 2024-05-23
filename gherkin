@@ -65,3 +65,87 @@ public class KafkaConsumerStepDefinitions {
         assert isValid : "Field " + field + " does not match any of the expected values";
     }
 }
+
+
+
+
+
+
+
+
+Feature: Get Summary of Collection Audit
+
+  Scenario: Retrieve summary with valid filter
+    Given the following collection audit filter
+      | host      | deviceType | fileType | fromDate   | toDate     |
+      | localhost | Router     | Log      | 2024-06-09 | 2024-12-31 |
+    When I request the collection audit summary
+    Then I should get a valid summary
+
+  Scenario: Retrieve summary with no audits in date range
+    Given the following collection audit filter
+      | host      | deviceType | fileType | fromDate   | toDate     |
+      | localhost | Router     | Log      | 2025-01-01 | 2025-12-31 |
+    When I request the collection audit summary
+    Then I should get an empty summary
+
+
+
+
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class GetSummaryStepDefinitions {
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    private CollectionAuditFilterDTO filterDTO;
+    private ResponseEntity<CollectionAuditSummaryDTO> response;
+
+    @Given("the following collection audit filter")
+    public void givenTheFollowingCollectionAuditFilter(io.cucumber.datatable.DataTable dataTable) {
+        List<List<String>> rows = dataTable.asLists(String.class);
+        List<String> filterData = rows.get(1);
+
+        filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost(filterData.get(0));
+        filterDTO.setDeviceType(filterData.get(1));
+        filterDTO.setFileType(filterData.get(2));
+        filterDTO.setFromDate(filterData.get(3));
+        filterDTO.setToDate(filterData.get(4));
+    }
+
+    @When("I request the collection audit summary")
+    public void whenIRequestTheCollectionAuditSummary() {
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<CollectionAuditFilterDTO> request = new HttpEntity<>(filterDTO, headers);
+
+        response = restTemplate.exchange("/collection-audit/getSummary", HttpMethod.POST, request, CollectionAuditSummaryDTO.class);
+    }
+
+    @Then("I should get a valid summary")
+    public void thenIShouldGetAValidSummary() {
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().getTotalRecords() > 0, "Summary should have records");
+    }
+
+    @Then("I should get an empty summary")
+    public void thenIShouldGetAnEmptySummary() {
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().getTotalRecords() == 0, "Summary should be empty");
+    }
+}
