@@ -149,3 +149,161 @@ public class GetSummaryStepDefinitions {
         assertTrue(response.getBody().getTotalRecords() == 0, "Summary should be empty");
     }
 }
+
+
+
+
+
+Feature: Filter Collection Audit by Job Status, Date, and Other Criteria
+
+  Scenario: Filter by job status COLLECTION_SUCCESSFUL
+    Given the following collection audit records
+      | id                                   | jobStatus              | dateProcessed           | fileType   | host            | deviceType  |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb7 | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033 | CSV GIGAMON| 10.134.134.115  | DeviceA     |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb8 | FLINK_JOB_FAILED       | 2024-05-14T08:10:26.033 | CSV GIGAMON| 10.134.134.116  | DeviceB     |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb9 | COLLECTION_SUCCESSFUL  | 2024-05-15T08:10:26.033 | CSV GIGAMON| 10.134.134.117  | DeviceA     |
+    When I filter collection audits by job status "COLLECTION_SUCCESSFUL"
+    Then I should get the following collection audit records
+      | id                                   | jobStatus              | dateProcessed           | fileType   | host            | deviceType  |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb7 | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033 | CSV GIGAMON| 10.134.134.115  | DeviceA     |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb9 | COLLECTION_SUCCESSFUL  | 2024-05-15T08:10:26.033 | CSV GIGAMON| 10.134.134.117  | DeviceA     |
+
+  Scenario: Filter by date range
+    Given the following collection audit records
+      | id                                   | jobStatus              | dateProcessed           | fileType   | host            | deviceType  |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb7 | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033 | CSV GIGAMON| 10.134.134.115  | DeviceA     |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb8 | FLINK_JOB_FAILED       | 2024-05-14T08:10:26.033 | CSV GIGAMON| 10.134.134.116  | DeviceB     |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb9 | COLLECTION_SUCCESSFUL  | 2024-05-15T08:10:26.033 | CSV GIGAMON| 10.134.134.117  | DeviceA     |
+    When I filter collection audits by date range from "2024-05-13T00:00:00.000" to "2024-05-14T23:59:59.999"
+    Then I should get the following collection audit records
+      | id                                   | jobStatus              | dateProcessed           | fileType   | host            | deviceType  |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb7 | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033 | CSV GIGAMON| 10.134.134.115  | DeviceA     |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb8 | FLINK_JOB_FAILED       | 2024-05-14T08:10:26.033 | CSV GIGAMON| 10.134.134.116  | DeviceB     |
+
+  Scenario: Filter by host, deviceType, fileType, and date range
+    Given the following collection audit records
+      | id                                   | jobStatus              | dateProcessed           | fileType   | host            | deviceType  |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb7 | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033 | CSV GIGAMON| 10.134.134.115  | DeviceA     |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb8 | FLINK_JOB_FAILED       | 2024-05-14T08:10:26.033 | CSV GIGAMON| 10.134.134.116  | DeviceB     |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb9 | COLLECTION_SUCCESSFUL  | 2024-05-15T08:10:26.033 | CSV GIGAMON| 10.134.134.117  | DeviceA     |
+    When I filter collection audits by host "10.134.134.115" deviceType "DeviceA" fileType "CSV GIGAMON" from date "2024-05-13T00:00:00.000" to date "2024-05-15T23:59:59.999"
+    Then I should get the following collection audit records
+      | id                                   | jobStatus              | dateProcessed           | fileType   | host            | deviceType  |
+      | b673b5ac-321e-4f59-8620-bf16dd923fb7 | COLLECTION_SUCCESSFUL  | 2024-05-13T08:10:26.033 | CSV GIGAMON| 10.134.134.115  | DeviceA     |
+
+
+
+
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class FilterCollectionAuditStepDefinitions {
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    private List<CollectionAudit> collectionAuditList;
+    private ResponseEntity<CollectionAudit[]> response;
+
+    @Given("the following collection audit records")
+    public void givenTheFollowingCollectionAuditRecords(io.cucumber.datatable.DataTable dataTable) {
+        List<Map<String, String>> rows = dataTable.asMaps(String.class, String.class);
+
+        collectionAuditList = rows.stream().map(row -> {
+            CollectionAudit audit = new CollectionAudit();
+            audit.setId(row.get("id"));
+            audit.setJobStatus(row.get("jobStatus"));
+            audit.setDateProcessed(row.get("dateProcessed"));
+            audit.setFileType(row.get("fileType"));
+            audit.setHost(row.get("host"));
+            audit.setDeviceType(row.get("deviceType"));
+            return audit;
+        }).collect(Collectors.toList());
+
+        // Assuming an endpoint to bulk insert the data for testing
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<List<CollectionAudit>> request = new HttpEntity<>(collectionAuditList, headers);
+        restTemplate.exchange("/api/collection-audits/bulk-insert", HttpMethod.POST, request, Void.class);
+    }
+
+    @When("I filter collection audits by job status {string}")
+    public void whenIFilterCollectionAuditsByJobStatus(String jobStatus) {
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setJobStatus(jobStatus);
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<CollectionAuditFilterDTO> request = new HttpEntity<>(filterDTO, headers);
+        response = restTemplate.exchange("/collection-audit/getSummary", HttpMethod.POST, request, CollectionAudit[].class);
+    }
+
+    @When("I filter collection audits by date range from {string} to {string}")
+    public void whenIFilterCollectionAuditsByDateRange(String fromDate, String toDate) {
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setFromDate(fromDate);
+        filterDTO.setToDate(toDate);
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<CollectionAuditFilterDTO> request = new HttpEntity<>(filterDTO, headers);
+        response = restTemplate.exchange("/collection-audit/getSummary", HttpMethod.POST, request, CollectionAudit[].class);
+    }
+
+    @When("I filter collection audits by host {string}, deviceType {string}, fileType {string}, from date {string} to date {string}")
+    public void whenIFilterCollectionAuditsByMultipleCriteria(String host, String deviceType, String fileType, String fromDate, String toDate) {
+        CollectionAuditFilterDTO filterDTO = new CollectionAuditFilterDTO();
+        filterDTO.setHost(host);
+        filterDTO.setDeviceType(deviceType);
+        filterDTO.setFileType(fileType);
+        filterDTO.setFromDate(fromDate);
+        filterDTO.setToDate(toDate);
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<CollectionAuditFilterDTO> request = new HttpEntity<>(filterDTO, headers);
+        response = restTemplate.exchange("/collection-audit/getSummary", HttpMethod.POST, request, CollectionAudit[].class);
+    }
+
+    @Then("I should get the following collection audit records")
+    public void thenIShouldGetTheFollowingCollectionAuditRecords(io.cucumber.datatable.DataTable expectedTable) {
+        List<Map<String, String>> expectedRows = expectedTable.asMaps(String.class, String.class);
+        List<CollectionAudit> expectedList = expectedRows.stream().map(row -> {
+            CollectionAudit audit = new CollectionAudit();
+            audit.setId(row.get("id"));
+            audit.setJobStatus(row.get("jobStatus"));
+            audit.setDateProcessed(row.get("dateProcessed"));
+            audit.setFileType(row.get("fileType"));
+            audit.setHost(row.get("host"));
+            audit.setDeviceType(row.get("deviceType"));
+            return audit;
+        }).collect(Collectors.toList());
+
+        CollectionAudit[] actualArray = response.getBody();
+        List<CollectionAudit> actualList = List.of(actualArray);
+
+        assertEquals(expectedList.size(), actualList.size());
+
+        for (int i = 0; i < expectedList.size(); i++) {
+            CollectionAudit expected = expectedList.get(i);
+            CollectionAudit actual = actualList.get(i);
+            assertEquals(expected.getId(), actual.getId());
+            assertEquals(expected.getJobStatus(), actual.getJobStatus());
+            assertEquals(expected.getDateProcessed(), actual.getDateProcessed());
+            assertEquals(expected.getFileType(), actual.getFileType());
+            assertEquals(expected.getHost(), actual.getHost());
+            assertEquals(expected.getDeviceType(), actual.getDeviceType());
+        }
+    }
+}
