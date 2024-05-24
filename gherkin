@@ -309,6 +309,24 @@ public class FilterCollectionAuditStepDefinitions {
 }
 
 
+    @Then("I should get the following collection audit summary")
+    public void thenIShouldGetTheFollowingCollectionAuditSummary(DataTable expectedTable) {
+        List<Map<String, String>> expectedRows = expectedTable.asMaps(String.class, String.class);
+
+        CollectionAuditSummaryDTO expectedSummary = new CollectionAuditSummaryDTO();
+        expectedSummary.setDevices(Integer.parseInt(expectedRows.get(0).get("Devices")));
+        expectedSummary.setFilesCollected(Integer.parseInt(expectedRows.get(0).get("Files Collected")));
+        expectedSummary.setFilesTransformed(Integer.parseInt(expectedRows.get(0).get("Files Transformed")));
+        expectedSummary.setRecordsCollected(Integer.parseInt(expectedRows.get(0).get("Records Collected")));
+        expectedSummary.setRecordsTransformed(Integer.parseInt(expectedRows.get(0).get("Records Transformed")));
+        expectedSummary.setFailedTransformations(Integer.parseInt(expectedRows.get(0).get("Failed Transformations")));
+        expectedSummary.setFailedCollections(Integer.parseInt(expectedRows.get(0).get("Failed Collections")));
+
+        CollectionAuditSummaryDTO actualSummary = response.getBody();
+
+        assertEquals(expectedSummary, actualSummary);
+    }
+
 
 
 
