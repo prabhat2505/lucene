@@ -1,4 +1,4 @@
-package com.example.dto;
+8package com.example.dto;
 
 public class PaginationDTO {
 
@@ -33,3 +33,32 @@ public class PaginationDTO {
                 '}';
     }
 }
+
+
+
+
+
+
+
+Logger.info("gteValue: " + gteValue + ", lteValue:" + lteValue + ", key:" + key + ", size:" + size);
+
+String jsonTemplate = "{"
+    + "\"query\": {"
+        + "\"bool\": {"
+            + "\"must\": [{"
+                + "\"range\": {"
+                    + "\"dateProcessed\": {"
+                        + "\"gte\": \"%s\","
+                        + "\"lte\": \"%s\""
+                    + "}"
+                + "}"
+            + "}]"
+        + "}"
+    + "},"
+    + "\"key\": \"%s\","
+    + "\"size\": %d"
++ "}";
+
+String collectionAuditGetAllQuery = String.format(jsonTemplate, gteValue, lteValue, key, size);
+
+Logger.info("collectionAuditGetAllQuery: " + collectionAuditGetAllQuery);
