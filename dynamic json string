@@ -64,7 +64,7 @@ public class DateRangeQueryBuilder {
 public class JsonTemplateDTO {
     private String gteValue;
     private String lteValue;
-    private Integer fromKey;
+    private Integer from;
     private Integer size;
 
     // Getters and Setters
@@ -85,12 +85,12 @@ public class JsonTemplateDTO {
         this.lteValue = lteValue;
     }
 
-    public Integer getFromKey() {
-        return fromKey;
+    public Integer getFrom() {
+        return from;
     }
 
-    public void setFromKey(Integer fromKey) {
-        this.fromKey = fromKey;
+    public void setFrom(Integer from) {
+        this.from = from;
     }
 
     public Integer getSize() {
@@ -118,10 +118,18 @@ public class JsonTemplateDTO {
             .append("}")
             .append("}");
 
-        if (fromKey != null && size != null) {
-            jsonTemplateBuilder.append(",")
-                .append("\"fromKey\": ").append(fromKey).append(",")
-                .append("\"size\": ").append(size);
+        // Adding from and size if they are not null
+        if (from != null || size != null) {
+            jsonTemplateBuilder.append(",");
+            if (from != null) {
+                jsonTemplateBuilder.append("\"from\": ").append(from);
+            }
+            if (size != null) {
+                if (from != null) {
+                    jsonTemplateBuilder.append(", ");
+                }
+                jsonTemplateBuilder.append("\"size\": ").append(size);
+            }
         }
 
         jsonTemplateBuilder.append("}");
