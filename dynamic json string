@@ -57,3 +57,74 @@ public class DateRangeQueryBuilder {
         System.out.println(query);
     }
 }
+
+
+
+
+public class JsonTemplateDTO {
+    private String gteValue;
+    private String lteValue;
+    private Integer fromKey;
+    private Integer size;
+
+    // Getters and Setters
+
+    public String getGteValue() {
+        return gteValue;
+    }
+
+    public void setGteValue(String gteValue) {
+        this.gteValue = gteValue;
+    }
+
+    public String getLteValue() {
+        return lteValue;
+    }
+
+    public void setLteValue(String lteValue) {
+        this.lteValue = lteValue;
+    }
+
+    public Integer getFromKey() {
+        return fromKey;
+    }
+
+    public void setFromKey(Integer fromKey) {
+        this.fromKey = fromKey;
+    }
+
+    public Integer getSize() {
+        return size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+
+    public String buildJson() {
+        StringBuilder jsonTemplateBuilder = new StringBuilder();
+        jsonTemplateBuilder.append("{")
+            .append("\"query\": {")
+            .append("\"bool\": {")
+            .append("\"must\": [")
+            .append("{")
+            .append("\"range\": {")
+            .append("\"dateProcessed\": {")
+            .append("\"gte\": \"").append(gteValue).append("\",")
+            .append("\"lte\": \"").append(lteValue).append("\"")
+            .append("}")
+            .append("}")
+            .append("]")
+            .append("}")
+            .append("}");
+
+        if (fromKey != null && size != null) {
+            jsonTemplateBuilder.append(",")
+                .append("\"fromKey\": ").append(fromKey).append(",")
+                .append("\"size\": ").append(size);
+        }
+
+        jsonTemplateBuilder.append("}");
+        return jsonTemplateBuilder.toString();
+    }
+}
