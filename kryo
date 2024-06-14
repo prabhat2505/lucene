@@ -112,4 +112,17 @@ public class CollectionAuditKryoSerializer extends Serializer<CollectionAudit> {
     <version>0.45</version>
 </dependency>
 
+<!-- Kryo Core Library -->
+<dependency>
+    <groupId>com.esotericsoftware.kryo</groupId>
+    <artifactId>kryo</artifactId>
+    <version>5.5.0</version> <!-- Adjust version as necessary -->
+</dependency>
+
+<!-- Kryo Serializers Library -->
+<dependency>
+    <groupId>de.javakaffee</groupId>
+    <artifactId>kryo-serializers</artifactId>
+    <version>0.45</version> <!-- Adjust version as necessary -->
+</dependency>
 
