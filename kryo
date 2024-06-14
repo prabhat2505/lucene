@@ -1,19 +1,59 @@
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.Serializer;
 
 public class CollectionAuditKryoSerializer extends Serializer<CollectionAudit> {
+
     @Override
-    public void write(Kryo kryo, Output output, CollectionAudit object) {
-        output.writeString(object.getAuditInfo());
-        output.writeInt(object.getAuditNumber());
+    public void write(Kryo kryo, Output output, CollectionAudit collectionAudit) {
+        output.writeString(collectionAudit.getId());
+        output.writeString(collectionAudit.getCollectorId());
+        output.writeString(collectionAudit.getProcessType());
+        output.writeString(collectionAudit.getJarId());
+        output.writeString(collectionAudit.getJob());
+        output.writeString(collectionAudit.getFlinkJobId());
+        output.writeString(collectionAudit.getJobStatus());
+        output.writeString(collectionAudit.getInputFilePath());
+        output.writeString(collectionAudit.getOutputFilePath());
+        output.writeString(collectionAudit.getDeviceType());
+        output.writeString(collectionAudit.getFlinkURL());
+        output.writeInt(collectionAudit.getPort());
+        output.writeString(collectionAudit.getDelimiters());
+        output.writeString(collectionAudit.getFileType());
+        output.writeString(collectionAudit.getDateReceived());
+        output.writeString(collectionAudit.getDateProcessed());
+        output.writeInt(collectionAudit.getNoOfRecordsInTheFile());
+        output.writeInt(collectionAudit.getNoOfRecordsProcessed());
+        output.writeInt(collectionAudit.getNoOfRecordsFailed());
+        output.writeString(collectionAudit.getExceptions());
+        output.writeString(collectionAudit.getBootstrapServer());
     }
 
     @Override
     public CollectionAudit read(Kryo kryo, Input input, Class<CollectionAudit> type) {
-        String auditInfo = input.readString();
-        int auditNumber = input.readInt();
-        return new CollectionAudit(auditInfo, auditNumber);
+        CollectionAudit collectionAudit = new CollectionAudit();
+        collectionAudit.setId(input.readString());
+        collectionAudit.setCollectorId(input.readString());
+        collectionAudit.setProcessType(input.readString());
+        collectionAudit.setJarId(input.readString());
+        collectionAudit.setJob(input.readString());
+        collectionAudit.setFlinkJobId(input.readString());
+        collectionAudit.setJobStatus(input.readString());
+        collectionAudit.setInputFilePath(input.readString());
+        collectionAudit.setOutputFilePath(input.readString());
+        collectionAudit.setDeviceType(input.readString());
+        collectionAudit.setFlinkURL(input.readString());
+        collectionAudit.setPort(input.readInt());
+        collectionAudit.setDelimiters(input.readString());
+        collectionAudit.setFileType(input.readString());
+        collectionAudit.setDateReceived(input.readString());
+        collectionAudit.setDateProcessed(input.readString());
+        collectionAudit.setNoOfRecordsInTheFile(input.readInt());
+        collectionAudit.setNoOfRecordsProcessed(input.readInt());
+        collectionAudit.setNoOfRecordsFailed(input.readInt());
+        collectionAudit.setExceptions(input.readString());
+        collectionAudit.setBootstrapServer(input.readString());
+        return collectionAudit;
     }
 }
