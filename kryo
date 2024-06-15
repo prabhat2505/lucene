@@ -380,4 +380,32 @@ public class FlinkJob {
         </plugins>
     </build>
 </project>
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
+public class MapDeserializationSchema implements DeserializationSchema<Map<String, Object>> {
+
+    @Override
+    public Map<String, Object> deserialize(byte[] message) throws IOException {
+        String jsonString = new String(message, StandardCharsets.UTF_8);
+        // Use your preferred JSON parsing library to convert the string to a Map
+        return new org.json.JSONObject(jsonString).toMap();
+    }
+
+    @Override
+    public boolean isEndOfStream(Map<String, Object> nextElement) {
+        return false;
+    }
+
+    @Override
+    public TypeInformation<Map<String, Object>> getProducedType() {
+        return TypeInformation.of(Map.class);
+    }
+}
 
