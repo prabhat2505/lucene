@@ -382,36 +382,32 @@ public class FlinkJob {
 </project>
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
-import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema.InitialOffset;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-public class MapDeserializationSchema implements DeserializationSchema<Map<String, Object>> {
-
-    @Override
-    public Map<String, Object> deserialize(byte[] message) throws IOException {
-        String jsonString = new String(message, StandardCharsets.UTF_8);
-        // Use your preferred JSON parsing library to convert the string to a Map
-        return new org.json.JSONObject(jsonString).toMap();
-    }
+public class MapDeserializationSchema implements KafkaDeserializationSchema<Map<String, Object>> {
 
     @Override
     public boolean isEndOfStream(Map<String, Object> nextElement) {
-        return false;
+        return false; // No end-of-stream in this example
+    }
+
+    @Override
+    public Map<String, Object> deserialize(ConsumerRecord<byte[], byte[]> record) throws Exception {
+        String jsonString = new String(record.value(), StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(jsonString);
+        return jsonObject.toMap();
     }
 
     @Override
     public TypeInformation<Map<String, Object>> getProducedType() {
-        return TypeInformation.of(Map.class);
-    }
-    @Override
-    public KafkaDeserializationSchema<Map<String, Object>> setInitialOffset(InitialOffset initialOffset) {
-        // Optionally handle initial offset settings
-        return this;
+        return TypeExtractor.getForClass(Map.class);
     }
 }
+
 
