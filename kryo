@@ -407,5 +407,10 @@ public class MapDeserializationSchema implements DeserializationSchema<Map<Strin
     public TypeInformation<Map<String, Object>> getProducedType() {
         return TypeInformation.of(Map.class);
     }
+    @Override
+    public KafkaDeserializationSchema<Map<String, Object>> setInitialOffset(InitialOffset initialOffset) {
+        // Optionally handle initial offset settings
+        return this;
+    }
 }
 
