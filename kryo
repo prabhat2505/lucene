@@ -382,11 +382,12 @@ public class FlinkJob {
 </project>
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
+import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema.InitialOffset;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.json.JSONObject;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 public class MapDeserializationSchema implements DeserializationSchema<Map<String, Object>> {
