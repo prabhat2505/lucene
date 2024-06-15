@@ -126,3 +126,47 @@ public class CollectionAuditKryoSerializer extends Serializer<CollectionAudit> {
     <version>0.45</version> <!-- Adjust version as necessary -->
 </dependency>
 
+
+
+
+
+
+
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import org.json.JSONObject;
+
+public class JSONObjectKryoSerializer extends Serializer<JSONObject> {
+    @Override
+    public void write(Kryo kryo, Output output, JSONObject jsonObject) {
+        output.writeString(jsonObject.toString());
+    }
+
+    @Override
+    public JSONObject read(Kryo kryo, Input input, Class<JSONObject> type) {
+        return new JSONObject(input.readString());
+    }
+}
+
+
+
+public class FlinkJob {
+    public static void main(String[] args) throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        ExecutionConfig config = env.getConfig();
+        config.addDefaultKryoSerializer(JSONObject.class, JSONObjectKryoSerializer.class);
+        config.addDefaultKryoSerializer(CollectionAudit.class, CollectionAuditKryoSerializer.class);
+
+        // Ensure that Flink uses Kryo for unrecognized types:
+        config.enableForceKryo();
+        
+        // Your Flink job logic here...
+
+        env.execute("Flink Kryo Serializer Job");
+    }
+}
+
+
