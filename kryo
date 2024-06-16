@@ -461,3 +461,28 @@ public class StringDeserializationSchema implements DeserializationSchema<String
     }
 }
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import org.json.JSONObject;
+
+public class JSONObjectKryoSerializer extends Serializer<JSONObject> {
+
+    @Override
+    public void write(Kryo kryo, Output output, JSONObject jsonObject) {
+        // Convert JSONObject to byte array and write to Kryo output
+        byte[] bytes = jsonObject.toString().getBytes();
+        output.writeInt(bytes.length);
+        output.writeBytes(bytes);
+    }
+
+    @Override
+    public JSONObject read(Kryo kryo, Input input, Class<? extends JSONObject> type) {
+        // Read byte array from Kryo input and convert to JSONObject
+        int length = input.readInt();
+        byte[] bytes = input.readBytes(length);
+        String jsonString = new String(bytes);
+        return new JSONObject(jsonString);
+    }
+}
