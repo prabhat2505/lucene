@@ -504,4 +504,11 @@ public class JSONObjectSerializer extends Serializer<JSONObject> {
         return new JSONObject(input.readString());
     }
 }
+    // Method to return type information
+    public static TypeInformation<Tuple2<JSONObject, CollectionAudit>> getProducedType() {
+        return Types.TUPLE(Types.GENERIC(JSONObject.class), TypeInformation.of(CollectionAudit.class));
+    }
+// Convert the XML data stream to JSON objects
+DataStream<Tuple2<JSONObject, CollectionAudit>> jsonNodeStream = xmlDataStream.flatMap(new XmlToJsonConverter())
+        .returns(XmlToJsonConverter.getProducedType()); // Apply the type information
 
