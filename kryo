@@ -439,3 +439,25 @@ public class StringDeserializationSchema implements KafkaDeserializationSchema<S
     }
 }
 
+
+public class StringDeserializationSchema implements DeserializationSchema<String> {
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public String deserialize(byte[] message) {
+        // Deserialize the Kafka record bytes into a String
+        return new String(message, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public boolean isEndOfStream(String nextElement) {
+        return false; // Assuming Kafka source never ends for the sake of example
+    }
+
+    @Override
+    public TypeInformation<String> getProducedType() {
+        return TypeExtractor.getForClass(String.class);
+    }
+}
+
