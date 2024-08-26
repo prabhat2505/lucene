@@ -1,0 +1,105 @@
+package com.example.kafkaconsumer.controller;
+
+import com.example.kafkaconsumer.service.KafkaConsumerService;
+import com.example.kafkaconsumer.model.ConsumerRecordRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/kafka")
+public class KafkaConsumerController {
+
+    @Autowired
+    private KafkaConsumerService kafkaConsumerService;
+
+    @PostMapping("/consume")
+    public String consumeMessage(@RequestBody ConsumerRecordRequest recordRequest) {
+        return kafkaConsumerService.processRecord(recordRequest);
+    }
+}
+
+
+
+package com.example.kafkaconsumer.service;
+
+import com.example.kafkaconsumer.model.ConsumerRecordRequest;
+import org.springframework.stereotype.Service;
+
+@Service
+public class KafkaConsumerService {
+
+    public String processRecord(ConsumerRecordRequest recordRequest) {
+        // Simulate processing the record
+        String ecpdid = recordRequest.getValue().get("ecpdid");
+
+        // Perform any business logic with the ecpdid or other fields
+        return "Processed record with ECPDID: " + ecpdid;
+    }
+}
+
+
+
+
+package com.example.kafkaconsumer.model;
+
+import java.util.Map;
+
+public class ConsumerRecordRequest {
+
+    private String topic;
+    private int partition;
+    private long offset;
+    private String key;
+    private Map<String, String> value;  // Assuming the payload is a key-value JSON
+    private long timestamp;
+
+    // Getters and Setters
+
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
+    public int getPartition() {
+        return partition;
+    }
+
+    public void setPartition(int partition) {
+        this.partition = partition;
+    }
+
+    public long getOffset() {
+        return offset;
+    }
+
+    public void setOffset(long offset) {
+        this.offset = offset;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public Map<String, String> getValue() {
+        return value;
+    }
+
+    public void setValue(Map<String, String> value) {
+        this.value = value;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+}
