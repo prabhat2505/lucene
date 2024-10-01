@@ -1,47 +1,60 @@
-
-
-
-
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import java.io.IOException;
-import java.util.Iterator;
 
-public class EcpdidDeserializer extends JsonDeserializer<String> {
+
+public class IvrEventDeserializer extends JsonDeserializer<IvrEvent> {
     @Override
-    public String deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
+    public IvrEvent deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
         JsonNode root = jsonParser.getCodec().readTree(jsonParser);
-        return findEcpdid(root);
+
+        IvrEvent ivrEvent = new IvrEvent();
+        ivrEvent.setEcpdid(findEcpdid(root));
+
+        return ivrEvent;
     }
 
     private String findEcpdid(JsonNode node) {
         // Check if the current node has "ecpdid" or "ECPDID"
-        if (node.has("ecpdid")) {
+        if (node.has("ecpdid") && node.get("ecpdid").isTextual()) {
             return node.get("ecpdid").asText();
-        } else if (node.has("ECPDID")) {
+        } else if (node.has("ECPDID") && node.get("ECPDID").isTextual()) {
             return node.get("ECPDID").asText();
         }
 
-        // Iterate through child nodes to find "ecpdid" or "ECPDID"
-        Iterator<JsonNode> elements = node.elements();
-        while (elements.hasNext()) {
-            JsonNode child = elements.next();
-            String ecpdid = findEcpdid(child); // Recursively search child nodes
+        // Check for nested objects
+        for (JsonNode child : node) {
+            String ecpdid = findEcpdid(child);
             if (ecpdid != null) {
                 return ecpdid;
             }
         }
 
-        // If not found, return null
         return null;
     }
 }
 
 
+
+
+package com.example.spring_kubernetes;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+@JsonDeserialize(using = IvrEventDeserializer.class)
+public class IvrEvent {
+    private String ecpdid;
+
+    public String getEcpdid() {
+        return ecpdid;
+    }
+
+    public void setEcpdid(String ecpdid) {
+        this.ecpdid = ecpdid;
+    }
+}
 
 
 
