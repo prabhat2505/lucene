@@ -1,0 +1,32 @@
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.io.IOException;
+
+public class CaseInsensitiveValueDeserializer extends JsonDeserializer<String> {
+    @Override
+    public String deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
+        JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+        return node.asText();  // Handles the deserialization
+    }
+}
+
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+public class MyClass {
+    private String ecpdid;
+
+    @JsonProperty("ecpdid")
+    @JsonDeserialize(using = CaseInsensitiveValueDeserializer.class)
+    public String getEcpdid() {
+        return ecpdid;
+    }
+
+    public void setEcpdid(String ecpdid) {
+        this.ecpdid = ecpdid;
+    }
+}
