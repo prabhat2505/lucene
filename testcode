@@ -1,3 +1,65 @@
+
+
+
+
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.io.IOException;
+
+public class EcpdidDeserializer extends JsonDeserializer<String> {
+    @Override
+    public String deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
+        JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+
+        // Try to extract "ecpdid" or "ECPDID" from the root level
+        if (node.has("ecpdid")) {
+            return node.get("ecpdid").asText();
+        } else if (node.has("ECPDID")) {
+            return node.get("ECPDID").asText();
+        }
+
+        // Check if there's a nested JSON that contains "ecpdid" or "ECPDID"
+        for (JsonNode child : node) {
+            if (child.has("ecpdid")) {
+                return child.get("ecpdid").asText();
+            } else if (child.has("ECPDID")) {
+                return child.get("ECPDID").asText();
+            }
+        }
+
+        // If not found, return null or a default value
+        return null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
