@@ -1,0 +1,15 @@
+if (bindingResult.hasErrors()) {
+    StringBuilder errorMessages = new StringBuilder("Validation errors: ");
+
+    for (FieldError error : bindingResult.getFieldErrors()) {
+        errorMessages.append(error.getField()).append(": ").append(error.getDefaultMessage()).append("; ");
+    }
+
+    // Trim any trailing semicolon and space
+    String errorMessageString = errorMessages.toString().trim();
+    if (errorMessageString.endsWith(";")) {
+        errorMessageString = errorMessageString.substring(0, errorMessageString.length() - 1);
+    }
+
+    return ResponseEntity.badRequest().body(errorMessageString);  // Return concatenated error messages
+}
