@@ -1,0 +1,117 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class EcpdInsightsService {
+
+    @Autowired
+    private EcpdInsightsRepository repository;
+
+    /**
+     * Fetch records from Cassandra and map them to the response payload structure with validation.
+     *
+     * @param ecpdId The ECPD ID to filter records.
+     * @param insightCategory The insight category to filter records.
+     * @return EcpdInsightsSearchResponse mapped with the filtered data.
+     */
+    public EcpdInsightsSearchResponse fetchEcpdInsights(String ecpdId, String insightCategory) {
+        // Fetch records from the repository
+        List<EcpdInsightsEntity> entities = repository.findByEcpdIdAndInsightCategory(ecpdId, insightCategory);
+
+        // Convert entities to domain objects for validation (InsightValue)
+        List<InsightValue> insightValues = new ArrayList<>();
+        for (EcpdInsightsEntity entity : entities) {
+            InsightValue insightValue = new InsightValue();
+            insightValue.setIsFwa(extractIsFwa(entity.getInsightValues())); // Assume a method to extract isFwa
+            insightValue.setIsNenSubscribed(extractIsNenSubscribed(entity.getInsightValues())); // Assume a method to extract isNenSubscribed
+            insightValue.setMilestoneName(extractMilestoneName(entity.getInsightValues())); // Assume a method to extract milestoneName
+            insightValue.setResolutionTime(extractResolutionTime(entity.getInsightValues())); // Assume a method to extract resolutionTime
+            insightValues.add(insightValue);
+        }
+
+        // Validate and filter insights
+        List<InsightValueResponse> filteredInsights = searchInsights(insightValues);
+
+        // Initialize response object
+        EcpdInsightsSearchResponse response = new EcpdInsightsSearchResponse();
+        response.setEcpdId(ecpdId);
+
+        // Map filtered insights to category insights
+        List<CategoryInsights> categoryInsightsList = new ArrayList<>();
+        for (InsightValueResponse insight : filteredInsights) {
+            CategoryInsights categoryInsights = new CategoryInsights();
+            categoryInsights.setCategory(insight.getCategory());
+
+            NameValuePair nameValuePair = new NameValuePair();
+            nameValuePair.setName(insight.getName());
+            nameValuePair.setValue(insight.getValue());
+
+            categoryInsights.setInsights(new NameValuePair[]{nameValuePair});
+            categoryInsightsList.add(categoryInsights);
+        }
+
+        response.setCategoryInsights(categoryInsightsList.toArray(new CategoryInsights[0]));
+
+        // Set ServiceStatus
+        ServiceStatus status = new ServiceStatus();
+        status.setCode("00000");
+        status.setMessage("SUCCESS");
+        response.setStatus(status);
+
+        return response;
+    }
+
+    /**
+     * Filters and validates insights.
+     */
+    public static List<InsightValueResponse> searchInsights(List<InsightValue> records) {
+        List<InsightValueResponse> result = new ArrayList<>();
+
+        for (InsightValue record : records) {
+            InsightValueResponse response = null;
+
+            if ("Y".equalsIgnoreCase(record.getIsFwa()) && "N".equalsIgnoreCase(record.getIsNenSubscribed())) {
+                if (!"Outage Resolved".equalsIgnoreCase(record.getMilestoneName())) {
+                    response = InsightValueMapper.mapToResponse(record);
+                    result.add(response);
+                } else if (isResolutionWithinLimit(record.getResolutionTime())) {
+                    response = InsightValueMapper.mapToResponse(record);
+                    result.add(response);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Helper method to check if the resolution time is within the specified limit.
+     */
+    private static boolean isResolutionWithinLimit(int limit) {
+        return limit < 4;
+    }
+
+    // Helper methods to extract specific fields from the insightValues (implement as needed)
+    private String extractIsFwa(String insightValues) {
+        // Logic to parse and extract the isFwa field
+        return "Y"; // Example return value
+    }
+
+    private String extractIsNenSubscribed(String insightValues) {
+        // Logic to parse and extract the isNenSubscribed field
+        return "N"; // Example return value
+    }
+
+    private String extractMilestoneName(String insightValues) {
+        // Logic to parse and extract the milestoneName field
+        return "Some Milestone"; // Example return value
+    }
+
+    private int extractResolutionTime(String insightValues) {
+        // Logic to parse and extract the resolutionTime field
+        return 3; // Example return value
+    }
+}
