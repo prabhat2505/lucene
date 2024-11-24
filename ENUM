@@ -1,0 +1,23 @@
+public enum MileStoneNames {
+
+    OUTAGE_DETECTED("Network Disruption Detected"),
+    OUTAGE_DIAGNOSING("Engineers Diagnosing the Issue"),
+    OUTAGE_REPAIRING("Repairs in Progress"),
+    OUTAGE_RESOLVED("Service Restored");
+
+    private final String description;
+
+    MileStoneNames(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    // Optionally, override toString to return the description
+    @Override
+    public String toString() {
+        return description;
+    }
+}
