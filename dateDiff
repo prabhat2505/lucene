@@ -42,3 +42,15 @@ public class TimeDifferenceComparison {
         return LocalDateTime.parse(formattedTime, DateTimeFormatter.ofPattern("yyyyMMdd'T'HH:mm:ss"));
     }
 }
+
+
+        ZonedDateTime currentDateTimeGMT = ZonedDateTime.now(ZoneId.of("GMT"));
+
+        // Define a formatter to format the output
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+
+        // Print the current date and time in GMT
+        System.out.println("Current date and time in GMT: " + currentDateTimeGMT.format(formatter));
+
+        DateTimeFormatter formatterWithMillis = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss.SSS z");
+        System.out.println(currentDateTimeGMT.format(formatterWithMillis));
