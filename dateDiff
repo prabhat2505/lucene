@@ -1,0 +1,44 @@
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.Duration;
+
+public class TimeDifferenceComparison {
+    public static void main(String[] args) {
+        // Example input strings in GMT
+        String outageStartTimeStr = "20240321080000.000 GMT";
+        String resolutionTimeStr = "20240321150000.000 GMT";
+
+        // Define a resolved status limit in hours (example: 8 hours)
+        int resolvedStatusLimitHours = 8;
+
+        // Parse the input strings to LocalDateTime
+        LocalDateTime outageStartTime = parseTime(outageStartTimeStr);
+        LocalDateTime resolutionTime = parseTime(resolutionTimeStr);
+
+        // Calculate the difference in hours
+        long hoursDifference = Duration.between(outageStartTime, resolutionTime).toHours();
+
+        // Compare the difference with the resolved status limit
+        if (hoursDifference <= resolvedStatusLimitHours) {
+            System.out.println("Resolution is within the limit.");
+        } else {
+            System.out.println("Resolution exceeds the limit.");
+        }
+
+        // Print the calculated difference in hours
+        System.out.println("Time difference in hours: " + hoursDifference);
+    }
+
+    private static LocalDateTime parseTime(String timeStr) {
+        // Extract the relevant parts of the input string
+        String datePart = timeStr.substring(0, 8); // yyyyMMdd
+        String timePart = timeStr.substring(8, 14); // HHmmss
+
+        // Combine and parse the parts into LocalDateTime
+        String formattedTime = datePart + "T" + timePart.substring(0, 2) + ":" +
+                               timePart.substring(2, 4) + ":" +
+                               timePart.substring(4, 6);
+        return LocalDateTime.parse(formattedTime, DateTimeFormatter.ofPattern("yyyyMMdd'T'HH:mm:ss"));
+    }
+}
