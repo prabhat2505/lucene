@@ -26,3 +26,29 @@ public class DateConversionUtil {
     }
 }
 
+private static ZonedDateTime parseTime(String timeStr) {
+    // Ensure the string ends with "GMT"
+    if (!timeStr.endsWith("GMT")) {
+        throw new IllegalArgumentException("Time string must end with 'GMT'.");
+    }
+
+    // Remove the " GMT" suffix for parsing
+    String trimmedTimeStr = timeStr.substring(0, timeStr.length() - 4);
+
+    // Extract the date and time parts
+    String datePart = trimmedTimeStr.substring(0, 8); // yyyyMMdd
+    String timePart = trimmedTimeStr.substring(9, 15); // HHmmss
+
+    // Combine into an ISO-8601 compatible format
+    String formattedTime = datePart + "T" +
+            timePart.substring(0, 2) + ":" +
+            timePart.substring(2, 4) + ":" +
+            timePart.substring(4, 6);
+
+    // Parse to LocalDateTime
+    LocalDateTime localDateTime = LocalDateTime.parse(formattedTime, DateTimeFormatter.ofPattern("yyyyMMdd'T'HH:mm:ss"));
+
+    // Convert to ZonedDateTime in GMT
+    return localDateTime.atZone(ZoneId.of("GMT"));
+}
+
