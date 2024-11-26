@@ -1,1 +1,28 @@
+package com.example.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+public class DateConversionUtil {
+
+    private DateConversionUtil() {
+        // Private constructor to prevent instantiation
+    }
+
+    public static String convertToGmtFormattedDate(String inputDate) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss.SSS' z'");
+        outputFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+        try {
+            Date date = inputFormat.parse(inputDate);
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            System.out.println("Error parsing date: " + e.getMessage());
+            return null;
+        }
+    }
+}
 
