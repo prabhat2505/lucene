@@ -1,35 +1,33 @@
-String topicName = "mtnOutageInsightOutboundTopic"; // Replace with the actual topic name
+public class MtnOutageInsightValues {
+    private String event_customer_status;
+    private String event_type;
+    private String eventTs;
+    private String is_fwa;
+    private String is_nen_subscribed;
+    private String is_plan_subscribed;
+    private String outage_id;
+    private String is_mobility;
 
-try {
-    // Send message to Kafka
-    Future<SendResult<String, String>> future = kafkaTemplate.send(new ProducerRecord<>(topicName, partition, null, transaction));
-
-    // Handle the send result asynchronously
-    future.whenCompleteAsync((record, exception) -> {
-        if (exception != null) {
-            // If there is an exception during send
-            handleSendError(exception, topicName, transactionId, payload, insightName, sensitivity);
-        } else {
-            // Successful message send
-            LOGGER.info("Message sent successfully to Kafka topic: {}, Partition: {}", topicName, record.getRecordMetadata().partition());
-        }
-    });
-} catch (Exception e) {
-    // Exception occurred during Kafka send setup
-    LOGGER.error("Exception occurred while setting up message send to Kafka topic: {}", topicName, e);
-    handleSendError(e, topicName, transactionId, payload, insightName, sensitivity);
 }
 
-// Method to handle errors, whether from send or setup
-private void handleSendError(Exception exception, String topicName, String transactionId, String payload, String insightName, String sensitivity) {
-    // Log the error
-    LOGGER.error("Error sending message to Kafka topic: {}", topicName, exception);
 
-    // Handle saving failed record
-    try {
-        aFalloutService.saveFailedRecords(topicName, transactionId, payload, insightName, sensitivity);
-    } catch (Exception saveException) {
-        LOGGER.error("Failed to save the record to the database for topic: {}", topicName, saveException);
-        // Optionally, add a fallback mechanism (e.g., store the error in a file or queue)
-    }
+import java.util.Map;
+
+public class InsightValues {
+    private String area_impacted;
+    private String city;
+    private String customers_affected;
+    private String etr;
+    private String etrh_range;
+    private String manual_etr;
+    private String milestone_name;
+    private String milestone_ts;
+    private String outage_id;
+    private String outage_start_date;
+    private String outage_state;
+    private String resolution_time;
+    private String state;
+    private String timezone;
+    private String zip;
+
 }
