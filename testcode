@@ -1,112 +1,35 @@
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.io.IOException;
+String topicName = "mtnOutageInsightOutboundTopic"; // Replace with the actual topic name
 
+try {
+    // Send message to Kafka
+    Future<SendResult<String, String>> future = kafkaTemplate.send(new ProducerRecord<>(topicName, partition, null, transaction));
 
-public class IvrEventDeserializer extends JsonDeserializer<IvrEvent> {
-    @Override
-    public IvrEvent deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
-        JsonNode root = jsonParser.getCodec().readTree(jsonParser);
-
-        IvrEvent ivrEvent = new IvrEvent();
-        ivrEvent.setEcpdid(findEcpdid(root));
-
-        return ivrEvent;
-    }
-
-    private String findEcpdid(JsonNode node) {
-        // Check if the current node has "ecpdid" or "ECPDID"
-        if (node.has("ecpdid") && node.get("ecpdid").isTextual()) {
-            return node.get("ecpdid").asText();
-        } else if (node.has("ECPDID") && node.get("ECPDID").isTextual()) {
-            return node.get("ECPDID").asText();
+    // Handle the send result asynchronously
+    future.whenCompleteAsync((record, exception) -> {
+        if (exception != null) {
+            // If there is an exception during send
+            handleSendError(exception, topicName, transactionId, payload, insightName, sensitivity);
+        } else {
+            // Successful message send
+            LOGGER.info("Message sent successfully to Kafka topic: {}, Partition: {}", topicName, record.getRecordMetadata().partition());
         }
-
-        // Check for nested objects
-        for (JsonNode child : node) {
-            String ecpdid = findEcpdid(child);
-            if (ecpdid != null) {
-                return ecpdid;
-            }
-        }
-
-        return null;
-    }
+    });
+} catch (Exception e) {
+    // Exception occurred during Kafka send setup
+    LOGGER.error("Exception occurred while setting up message send to Kafka topic: {}", topicName, e);
+    handleSendError(e, topicName, transactionId, payload, insightName, sensitivity);
 }
 
+// Method to handle errors, whether from send or setup
+private void handleSendError(Exception exception, String topicName, String transactionId, String payload, String insightName, String sensitivity) {
+    // Log the error
+    LOGGER.error("Error sending message to Kafka topic: {}", topicName, exception);
 
-
-
-package com.example.spring_kubernetes;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-@JsonDeserialize(using = IvrEventDeserializer.class)
-public class IvrEvent {
-    private String ecpdid;
-
-    public String getEcpdid() {
-        return ecpdid;
-    }
-
-    public void setEcpdid(String ecpdid) {
-        this.ecpdid = ecpdid;
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-
-import java.io.IOException;
-
-public class CaseInsensitiveValueDeserializer extends JsonDeserializer<String> {
-    @Override
-    public String deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
-        JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-        return node.asText();  // Handles the deserialization
-    }
-}
-
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-public class MyClass {
-    private String ecpdid;
-
-    @JsonProperty("ecpdid")
-    @JsonDeserialize(using = CaseInsensitiveValueDeserializer.class)
-    public String getEcpdid() {
-        return ecpdid;
-    }
-
-    public void setEcpdid(String ecpdid) {
-        this.ecpdid = ecpdid;
+    // Handle saving failed record
+    try {
+        aFalloutService.saveFailedRecords(topicName, transactionId, payload, insightName, sensitivity);
+    } catch (Exception saveException) {
+        LOGGER.error("Failed to save the record to the database for topic: {}", topicName, saveException);
+        // Optionally, add a fallback mechanism (e.g., store the error in a file or queue)
     }
 }
