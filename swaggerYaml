@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: Event Ledger Services API
+  title: Ecpd Insight Service API
   description: API to insert ECPD insights with API key security.
   version: 1.0.0
 servers:
