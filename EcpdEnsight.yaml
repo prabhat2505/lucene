@@ -1,0 +1,207 @@
+openapi: 3.0.1
+info:
+  title: Ecpd Insight Service API
+  description: API to insert ECPD insights with API key security.
+  version: 1.0.0
+servers:
+  - url: https://oa-dev2.ebiz.verizon.com/eventledger-services
+    description: Development Server
+paths:
+  /ecpd/insights:
+    post:
+      summary: Insert ECPD Insights
+      description: Endpoint to insert ECPD insights using API key for authentication.
+      operationId: insertEcpdInsights
+      requestBody:
+        description: JSON payload for inserting ECPD insights
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serviceHeader:
+                  type: object
+                  description: Header details for the service.
+                  required:
+                    - clientId
+                    - clientTransactionId
+                    - serviceName
+                  properties:
+                    clientId:
+                      type: string
+                      description: The client ID of the requester.
+                      example: DATAFLOW
+                    clientTransactionId:
+                      type: string
+                      description: The transaction ID for tracking.
+                      example: "1234"
+                    serviceName:
+                      type: string
+                      description: Name of the service being invoked.
+                      example: insertEcpdInsights
+                requestType:
+                  type: string
+                  description: The type of request being made.
+                  example: 50I_InsertEcpdInsights
+                keyAttributes:
+                  type: object
+                  description: Attributes for the insight being inserted.
+                  required:
+                    - insightCategory
+                    - insightName
+                    - outageId
+                    - custAcctdId
+                    - ecpdId
+                    - updateTs
+                    - ttl
+                    - updateBy
+                    - insightValues
+                  properties:
+                    insightCategory:
+                      type: string
+                      description: The category of the insight.
+                      example: VB6NxOutage
+                    insightName:
+                      type: string
+                      description: The name of the insight.
+                      example: ecpdOutage
+                    outageId:
+                      type: string
+                      description: ID of the outage.
+                      example: "30002"
+                    custAcctdId:
+                      type: string
+                      description: Customer account ID.
+                      example: "000000"
+                    ecpdId:
+                      type: string
+                      description: ID of the ECPD.
+                      example: "99000"
+                    updateTs:
+                      type: string
+                      format: date-time
+                      description: Timestamp for the update.
+                      example: 2024-03-21T18:16:11.673Z
+                    ttl:
+                      type: string
+                      description: Time-to-live value.
+                      example: "36"
+                    updateBy:
+                      type: string
+                      description: The user or process that updated the data.
+                      example: vbg-dataflow
+                    insightValues:
+                      type: object
+                      description: A map of key-value pairs for insight details.
+                      additionalProperties:
+                        type: string
+                      example:
+                        outage_id: "30902"
+                        milestone_name: "Service Restored"
+                        outage_start_datetime: "2024-03-21T18:16:11.673Z"
+                        outage_updated_datetime: "2024-03-21T20:00:00.000Z"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "405":
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "406":
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - apiKeyAuth: []
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: apikey
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Status code of the response.
+              example: "00000"
+            message:
+              type: string
+              description: Detailed status message.
+              example: SUCCESS
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code of the response.
+              example: "401"
+            message:
+              type: string
+              description: Detailed error message.
+
