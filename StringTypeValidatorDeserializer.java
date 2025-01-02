@@ -15,3 +15,10 @@ public class StringTypeValidatorDeserializer extends JsonDeserializer<String> {
         return p.getText(); // Return the string value
     }
 }
+
+
+public class InvalidTypeException extends RuntimeException {
+    public InvalidTypeException(String message) {
+        super(message);
+    }
+}
