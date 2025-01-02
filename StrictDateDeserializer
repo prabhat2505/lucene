@@ -1,0 +1,30 @@
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class StrictDateDeserializer extends JsonDeserializer<Date> {
+
+    private static final String DATE_FORMAT = "yyyyMMdd'T'HHmmss.SSS z";
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+
+    @Override
+    public Date deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        // Ensure the input is a scalar string
+        if (!p.getCurrentToken().isScalarValue()) {
+            throw new IOException("Invalid type: expected a string representing a date.");
+        }
+
+        String dateStr = p.getText();
+        try {
+            // Parse the string into a Date object
+            return dateFormat.parse(dateStr);
+        } catch (ParseException e) {
+            throw new IOException("Invalid date format. Expected format: " + DATE_FORMAT);
+        }
+    }
+}
