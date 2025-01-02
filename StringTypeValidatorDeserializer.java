@@ -22,3 +22,7 @@ public class InvalidTypeException extends RuntimeException {
         super(message);
     }
 }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<String> handleDeserializationError(HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + ex.getMessage());
+    }
