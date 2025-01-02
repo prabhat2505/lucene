@@ -26,3 +26,19 @@ public class InvalidTypeException extends RuntimeException {
     public ResponseEntity<String> handleDeserializationError(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + ex.getMessage());
     }
+
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(InvalidInputTypeException.class)
+    public ResponseEntity<String> handleInvalidInputTypeException(InvalidInputTypeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + ex.getMessage());
+    }
+}
+
