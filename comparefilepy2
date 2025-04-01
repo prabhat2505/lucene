@@ -1,0 +1,37 @@
+import csv
+
+def compare_jtl(file1, file2):
+    # Open the JTL files and read them as CSV
+    with open(file1, 'r') as f1, open(file2, 'r') as f2:
+        reader1 = csv.reader(f1)
+        reader2 = csv.reader(f2)
+
+        # Read the headers (assuming the first line is the header)
+        header1 = next(reader1)
+        header2 = next(reader2)
+
+        # Compare headers
+        if header1 != header2:
+            print("Headers do not match!")
+            return
+        
+        # Compare the rows
+        differences = []
+        for row1, row2 in zip(reader1, reader2):
+            for i, (col1, col2) in enumerate(zip(row1, row2)):
+                if col1 != col2:
+                    differences.append(f"Difference found at row {reader1.line_num}, column {header1[i]}: {col1} != {col2}")
+    
+    return differences
+
+# Example Usage
+file1 = 'old_result.jtl'
+file2 = 'new_result.jtl'
+differences = compare_jtl(file1, file2)
+
+# Output the differences
+if differences:
+    for diff in differences:
+        print(diff)
+else:
+    print("No differences found!")
