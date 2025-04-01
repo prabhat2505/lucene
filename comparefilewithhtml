@@ -1,0 +1,114 @@
+import csv
+import argparse
+
+# Function to parse JTL file
+def parse_jtl(file_path):
+    elapsed_times = []
+    success_flags = []
+    thread_names = {}
+
+    # Open the JTL file and read it as CSV
+    with open(file_path, 'r') as file:
+        reader = csv.DictReader(file)
+        
+        # Check if required columns exist
+        if not all(col in reader.fieldnames for col in ['elapsed', 'label', 'success', 'threadName']):
+            raise ValueError("Invalid JTL file format. Required columns: 'elapsed', 'label', 'success', 'threadName'")
+        
+        # Read the rows and extract elapsed times, success flags, and thread names
+        for row in reader:
+            thread_name = row['threadName']
+            elapsed_times.append(int(row['elapsed']))  # Convert elapsed to integer
+            success_flags.append(1 if row['success'] == 'true' else 0)  # Convert success to 1 (True) or 0 (False)
+
+            if thread_name not in thread_names:
+                thread_names[thread_name] = {
+                    "elapsed_times": [],
+                    "success_flags": []
+                }
+
+            thread_names[thread_name]["elapsed_times"].append(int(row['elapsed']))
+            thread_names[thread_name]["success_flags"].append(1 if row['success'] == 'true' else 0)
+
+    # Calculate general metrics
+    avg_time = sum(elapsed_times) / len(elapsed_times) if elapsed_times else 0
+    min_time = min(elapsed_times) if elapsed_times else 0
+    max_time = max(elapsed_times) if elapsed_times else 0
+    error_rate = (1 - sum(success_flags) / len(success_flags)) * 100 if success_flags else 0
+    throughput = len(elapsed_times) / (sum(elapsed_times) / 1000) if elapsed_times else 0
+
+    # Calculate per-thread metrics
+    thread_metrics = {}
+    for thread_name, data in thread_names.items():
+        thread_avg = sum(data["elapsed_times"]) / len(data["elapsed_times"]) if data["elapsed_times"] else 0
+        thread_min = min(data["elapsed_times"]) if data["elapsed_times"] else 0
+        thread_max = max(data["elapsed_times"]) if data["elapsed_times"] else 0
+        thread_error_rate = (1 - sum(data["success_flags"]) / len(data["success_flags"])) * 100 if data["success_flags"] else 0
+        thread_throughput = len(data["elapsed_times"]) / (sum(data["elapsed_times"]) / 1000) if data["elapsed_times"] else 0
+
+        thread_metrics[thread_name] = {
+            "Average Response Time (ms)": round(thread_avg, 2),
+            "Min Response Time (ms)": thread_min,
+            "Max Response Time (ms)": thread_max,
+            "Error Rate (%)": round(thread_error_rate, 2),
+            "Throughput (requests/sec)": round(thread_throughput, 2)
+        }
+
+    return {
+        "General Metrics": {
+            "Average Response Time (ms)": round(avg_time, 2),
+            "Min Response Time (ms)": min_time,
+            "Max Response Time (ms)": max_time,
+            "Error Rate (%)": round(error_rate, 2),
+            "Throughput (requests/sec)": round(throughput, 2)
+        },
+        "Thread Metrics": thread_metrics
+    }
+
+# Function to generate HTML report
+def generate_html_report(old_metrics, new_metrics, output_file):
+    with open(output_file, 'w') as file:
+        file.write("<html><head><title>JMeter Report Comparison</title></head><body>")
+        file.write("<h1>JMeter Report Comparison</h1>")
+        
+        # General Metrics Comparison
+        file.write("<h2>General Metrics Comparison:</h2><table border='1'>")
+        file.write("<tr><th>Metric</th><th>Old Value</th><th>New Value</th></tr>")
+        for metric, old_value in old_metrics["General Metrics"].items():
+            new_value = new_metrics["General Metrics"].get(metric, "N/A")
+            file.write(f"<tr><td>{metric}</td><td>{old_value}</td><td>{new_value}</td></tr>")
+        file.write("</table>")
+        
+        # Thread Metrics Comparison
+        file.write("<h2>Thread Metrics Comparison:</h2>")
+        for thread_name, old_thread_data in old_metrics["Thread Metrics"].items():
+            new_thread_data = new_metrics["Thread Metrics"].get(thread_name, None)
+            file.write(f"<h3>Thread '{thread_name}' Comparison:</h3><table border='1'>")
+            file.write("<tr><th>Metric</th><th>Old Value</th><th>New Value</th></tr>")
+            if new_thread_data:
+                for metric, old_value in old_thread_data.items():
+                    new_value = new_thread_data.get(metric, "N/A")
+                    file.write(f"<tr><td>{metric}</td><td>{old_value}</td><td>{new_value}</td></tr>")
+            else:
+                file.write("<tr><td colspan='3'>Thread only exists in the first file</td></tr>")
+            file.write("</table>")
+
+        file.write("</body></html>")
+
+# Function to compare JTL results
+def compare_results(old_metrics, new_metrics, output_file):
+    generate_html_report(old_metrics, new_metrics, output_file)
+    print(f"HTML report generated at: {output_file}")
+
+# Argument parser for command-line input
+parser = argparse.ArgumentParser(description="Compare two JMeter JTL files and generate an HTML report")
+parser.add_argument("--file1", required=True, help="Path to the first JTL file")
+parser.add_argument("--file2", required=True, help="Path to the second JTL file")
+parser.add_argument("--output", required=True, help="Path to save the HTML report")
+
+args = parser.parse_args()
+
+# Read JTL files and compare
+old_metrics = parse_jtl(args.file1)
+new_metrics = parse_jtl(args.file2)
+compare_results(old_metrics, new_metrics, args.output)
