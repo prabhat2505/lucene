@@ -1,0 +1,58 @@
+import json
+import argparse
+
+# Function to parse statistics.json file
+def parse_statistics_json(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    if "Total" not in data or not isinstance(data, dict):
+        raise ValueError("Invalid statistics.json format. Expected thread-level data.")
+
+    thread_metrics = {}
+
+    # Iterate through each thread in the JSON
+    for thread_name, stats in data.items():
+        if thread_name == "Total":
+            continue  # Skip the total summary
+
+        max_response_time = stats.get("Max", 0)
+
+        thread_metrics[thread_name] = {
+            "Max Response Time (ms)": max_response_time
+        }
+
+    return thread_metrics
+
+# Function to generate HTML report
+def generate_html_report(old_metrics, new_metrics, output_file):
+    with open(output_file, 'w') as file:
+        file.write("<html><head><title>JMeter Performance Report</title></head><body>")
+        file.write("<h1>JMeter Report - Threads with High Response Time</h1>")
+        file.write("<h2>Threads with Max Response Time > 300ms</h2>")
+        file.write("<table border='1'><tr><th>Thread Name</th><th>Old Max Response Time (ms)</th><th>New Max Response Time (ms)</th></tr>")
+
+        for thread_name, old_data in old_metrics.items():
+            new_data = new_metrics.get(thread_name, {"Max Response Time (ms)": "N/A"})
+            if old_data["Max Response Time (ms)"] > 300 or (new_data["Max Response Time (ms)"] != "N/A" and new_data["Max Response Time (ms)"] > 300):
+                file.write(f"<tr><td>{thread_name}</td><td>{old_data['Max Response Time (ms)']}</td><td>{new_data['Max Response Time (ms)']}</td></tr>")
+
+        file.write("</table>")
+        file.write("</body></html>")
+
+# Argument parser for command-line input
+parser = argparse.ArgumentParser(description="Compare JMeter statistics.json files and generate an HTML report")
+parser.add_argument("--file1", required=True, help="Path to the first statistics.json file")
+parser.add_argument("--file2", required=True, help="Path to the second statistics.json file")
+parser.add_argument("--output", required=True, help="Path to save the HTML report")
+
+args = parser.parse_args()
+
+# Parse statistics.json files
+old_metrics = parse_statistics_json(args.file1)
+new_metrics = parse_statistics_json(args.file2)
+
+# Generate HTML report
+generate_html_report(old_metrics, new_metrics, args.output)
+
+print(f"HTML report saved: {args.output}")
