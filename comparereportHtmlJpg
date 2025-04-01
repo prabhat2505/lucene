@@ -1,0 +1,98 @@
+import csv
+import argparse
+import matplotlib.pyplot as plt
+
+# Function to parse JTL file
+def parse_jtl(file_path):
+    thread_names = {}
+
+    # Read the JTL file
+    with open(file_path, 'r') as file:
+        reader = csv.DictReader(file)
+
+        # Check if required columns exist
+        if not all(col in reader.fieldnames for col in ['elapsed', 'label', 'success', 'threadName']):
+            raise ValueError("Invalid JTL file format. Required columns: 'elapsed', 'label', 'success', 'threadName'")
+
+        for row in reader:
+            thread_name = row['threadName']
+            elapsed_time = int(row['elapsed'])
+            
+            if thread_name not in thread_names:
+                thread_names[thread_name] = {
+                    "elapsed_times": []
+                }
+            thread_names[thread_name]["elapsed_times"].append(elapsed_time)
+
+    # Calculate thread-wise metrics
+    thread_metrics = {}
+    for thread_name, data in thread_names.items():
+        thread_max = max(data["elapsed_times"]) if data["elapsed_times"] else 0
+
+        thread_metrics[thread_name] = {
+            "Max Response Time (ms)": thread_max
+        }
+
+    return thread_metrics
+
+# Function to generate HTML report
+def generate_html_report(old_metrics, new_metrics, output_file):
+    with open(output_file, 'w') as file:
+        file.write("<html><head><title>JMeter Performance Report</title></head><body>")
+        file.write("<h1>JMeter Report - Threads with High Response Time</h1>")
+
+        file.write("<h2>Threads with Max Response Time > 300ms</h2>")
+        file.write("<table border='1'><tr><th>Thread Name</th><th>Old Max Response Time (ms)</th><th>New Max Response Time (ms)</th></tr>")
+
+        high_latency_threads = []
+        for thread_name, old_data in old_metrics.items():
+            new_data = new_metrics.get(thread_name, {"Max Response Time (ms)": "N/A"})
+            if old_data["Max Response Time (ms)"] > 300 or (new_data["Max Response Time (ms)"] != "N/A" and new_data["Max Response Time (ms)"] > 300):
+                file.write(f"<tr><td>{thread_name}</td><td>{old_data['Max Response Time (ms)']}</td><td>{new_data['Max Response Time (ms)']}</td></tr>")
+                high_latency_threads.append((thread_name, new_data["Max Response Time (ms)"]))
+
+        file.write("</table>")
+        file.write("<h3>Generated Chart:</h3>")
+        file.write('<img src="performance_chart.jpg" alt="Performance Chart">')
+        file.write("</body></html>")
+
+    return high_latency_threads
+
+# Function to generate performance chart
+def generate_chart(high_latency_threads, image_file):
+    if not high_latency_threads:
+        return  # No high-latency threads, skip chart generation
+    
+    thread_names, response_times = zip(*high_latency_threads)
+    
+    plt.figure(figsize=(10, 5))
+    plt.bar(thread_names, response_times, color='red')
+    plt.xlabel("Thread Name")
+    plt.ylabel("Max Response Time (ms)")
+    plt.title("Threads with High Response Time (>300ms)")
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    plt.savefig(image_file)
+    plt.close()
+
+# Argument parser for command-line input
+parser = argparse.ArgumentParser(description="Compare JMeter JTL files and generate HTML + JPG report")
+parser.add_argument("--file1", required=True, help="Path to the first JTL file")
+parser.add_argument("--file2", required=True, help="Path to the second JTL file")
+parser.add_argument("--output", required=True, help="Path to save the HTML report")
+parser.add_argument("--image", required=True, help="Path to save the JPG chart")
+
+args = parser.parse_args()
+
+# Parse JTL files
+old_metrics = parse_jtl(args.file1)
+new_metrics = parse_jtl(args.file2)
+
+# Generate HTML report
+high_latency_threads = generate_html_report(old_metrics, new_metrics, args.output)
+
+# Generate JPG chart
+generate_chart(high_latency_threads, args.image)
+
+print(f"HTML report saved: {args.output}")
+print(f"JPG chart saved: {args.image}")
