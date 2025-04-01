@@ -1,0 +1,40 @@
+import pandas as pd
+import argparse
+
+# Function to parse JTL file
+def parse_jtl(file_path):
+    df = pd.read_csv(file_path)
+
+    if not {'elapsed', 'label', 'success'}.issubset(df.columns):
+        raise ValueError("Invalid JTL file format. Required columns: 'elapsed', 'label', 'success'")
+
+    avg_time = df['elapsed'].mean()
+    min_time = df['elapsed'].min()
+    max_time = df['elapsed'].max()
+    error_rate = (1 - df['success'].mean()) * 100  
+    throughput = len(df) / (df['elapsed'].sum() / 1000)
+
+    return {
+        "Average Response Time (ms)": round(avg_time, 2),
+        "Min Response Time (ms)": min_time,
+        "Max Response Time (ms)": max_time,
+        "Error Rate (%)": round(error_rate, 2),
+        "Throughput (requests/sec)": round(throughput, 2)
+    }
+
+# Function to compare JTL results
+def compare_results(old_metrics, new_metrics):
+    for metric in old_metrics.keys():
+        print(f"{metric}: {old_metrics[metric]} → {new_metrics[metric]}")
+
+# Argument parser for command-line input
+parser = argparse.ArgumentParser(description="Compare two JMeter JTL files")
+parser.add_argument("--file1", required=True, help="Path to the first JTL file")
+parser.add_argument("--file2", required=True, help="Path to the second JTL file")
+
+args = parser.parse_args()
+
+# Read JTL files and compare
+old_metrics = parse_jtl(args.file1)
+new_metrics = parse_jtl(args.file2)
+compare_results(old_metrics, new_metrics)
