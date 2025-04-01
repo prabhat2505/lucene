@@ -1,37 +1,52 @@
 import csv
+import argparse
 
-def compare_jtl(file1, file2):
-    # Open the JTL files and read them as CSV
-    with open(file1, 'r') as f1, open(file2, 'r') as f2:
-        reader1 = csv.reader(f1)
-        reader2 = csv.reader(f2)
-
-        # Read the headers (assuming the first line is the header)
-        header1 = next(reader1)
-        header2 = next(reader2)
-
-        # Compare headers
-        if header1 != header2:
-            print("Headers do not match!")
-            return
-        
-        # Compare the rows
-        differences = []
-        for row1, row2 in zip(reader1, reader2):
-            for i, (col1, col2) in enumerate(zip(row1, row2)):
-                if col1 != col2:
-                    differences.append(f"Difference found at row {reader1.line_num}, column {header1[i]}: {col1} != {col2}")
+# Function to parse JTL file
+def parse_jtl(file_path):
+    elapsed_times = []
+    success_flags = []
     
-    return differences
+    # Open the JTL file and read it as CSV
+    with open(file_path, 'r') as file:
+        reader = csv.DictReader(file)
+        
+        # Check if required columns exist
+        if not all(col in reader.fieldnames for col in ['elapsed', 'label', 'success']):
+            raise ValueError("Invalid JTL file format. Required columns: 'elapsed', 'label', 'success'")
+        
+        # Read the rows and extract elapsed times and success flags
+        for row in reader:
+            elapsed_times.append(int(row['elapsed']))  # Convert elapsed to integer
+            success_flags.append(1 if row['success'] == 'true' else 0)  # Convert success to 1 (True) or 0 (False)
+    
+    # Calculate metrics
+    avg_time = sum(elapsed_times) / len(elapsed_times) if elapsed_times else 0
+    min_time = min(elapsed_times) if elapsed_times else 0
+    max_time = max(elapsed_times) if elapsed_times else 0
+    error_rate = (1 - sum(success_flags) / len(success_flags)) * 100 if success_flags else 0
+    throughput = len(elapsed_times) / (sum(elapsed_times) / 1000) if elapsed_times else 0
 
-# Example Usage
-file1 = 'old_result.jtl'
-file2 = 'new_result.jtl'
-differences = compare_jtl(file1, file2)
+    return {
+        "Average Response Time (ms)": round(avg_time, 2),
+        "Min Response Time (ms)": min_time,
+        "Max Response Time (ms)": max_time,
+        "Error Rate (%)": round(error_rate, 2),
+        "Throughput (requests/sec)": round(throughput, 2)
+    }
 
-# Output the differences
-if differences:
-    for diff in differences:
-        print(diff)
-else:
-    print("No differences found!")
+# Function to compare JTL results
+def compare_results(old_metrics, new_metrics):
+    for metric in old_metrics.keys():
+        print(f"{metric}: {old_metrics[metric]} → {new_metrics[metric]}")
+
+# Argument parser for command-line input
+parser = argparse.ArgumentParser(description="Compare two JMeter JTL files")
+parser.add_argument("--file1", required=True, help="Path to the first JTL file")
+parser.add_argument("--file2", required=True, help="Path to the second JTL file")
+
+args = parser.parse_args()
+
+# Read JTL files and compare
+old_metrics = parse_jtl(args.file1)
+new_metrics = parse_jtl(args.file2)
+compare_results(old_metrics, new_metrics)
