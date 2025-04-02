@@ -1,0 +1,63 @@
+import json
+import argparse
+
+# Function to parse statistics.json file
+def parse_statistics_json(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    if not isinstance(data, dict):
+        raise ValueError("Invalid statistics.json format. Expected a dictionary of transactions.")
+
+    thread_metrics = {}
+
+    # Iterate through each thread name (key)
+    for thread_name, stats in data.items():
+        max_response_time = stats.get("maxResTime", 0)
+
+        thread_metrics[thread_name] = {
+            "Max Response Time (ms)": max_response_time,
+            "Mean Response Time (ms)": stats.get("meanResTime", 0),
+            "Median Response Time (ms)": stats.get("medianResTime", 0),
+            "Throughput": stats.get("throughput", 0)
+        }
+
+    return thread_metrics
+
+# Function to generate an HTML report comparing matched thread names
+def generate_html_report(old_metrics, new_metrics, output_file):
+    html_content = "<html><head><title>JMeter Performance Report</title></head><body>"
+    html_content += "<h1>JMeter Report - Matching Threads with High Response Time</h1>"
+    html_content += "<h2>Comparing Matched Threads (Max Response Time > 300ms)</h2>"
+    html_content += "<table border='1'><tr><th>Thread Name</th><th>Old Max Response Time (ms)</th><th>New Max Response Time (ms)</th></tr>"
+
+    for thread_name in old_metrics.keys():
+        if thread_name in new_metrics:
+            old_data = old_metrics[thread_name]
+            new_data = new_metrics[thread_name]
+
+            # Only include threads where max response time > 300ms in either old or new data
+            if old_data["Max Response Time (ms)"] > 300 or new_data["Max Response Time (ms)"] > 300:
+                html_content += f"<tr><td>{thread_name}</td><td>{old_data['Max Response Time (ms)']}</td><td>{new_data['Max Response Time (ms)']}</td></tr>"
+
+    html_content += "</table></body></html>"
+
+    with open(output_file, 'w') as file:
+        file.write(html_content)
+
+    print(f"HTML report saved: {output_file}")
+
+# Argument parser for command-line input
+parser = argparse.ArgumentParser(description="Compare JMeter statistics.json files for matching thread names and generate an HTML report")
+parser.add_argument("--file1", required=True, help="Path to the first statistics.json file")
+parser.add_argument("--file2", required=True, help="Path to the second statistics.json file")
+parser.add_argument("--output_html", required=True, help="Path to save the HTML report")
+
+args = parser.parse_args()
+
+# Parse statistics.json files
+old_metrics = parse_statistics_json(args.file1)
+new_metrics = parse_statistics_json(args.file2)
+
+# Generate HTML report
+generate_html_report(old_metrics, new_metrics, args.output_html)
