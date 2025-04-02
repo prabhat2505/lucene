@@ -6,36 +6,33 @@ def parse_statistics_json(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
 
-    if "Total" not in data or not isinstance(data, dict):
-        raise ValueError("Invalid statistics.json format. Expected thread-level data.")
+    if not isinstance(data, dict):
+        raise ValueError("Invalid statistics.json format. Expected a dictionary of transactions.")
 
-    thread_metrics = {}
+    transaction_metrics = {}
 
-    # Iterate through each thread in the JSON
-    for thread_name, stats in data.items():
-        if thread_name == "Total":
-            continue  # Skip the total summary
+    # Iterate through each transaction in the JSON
+    for transaction_name, stats in data.items():
+        max_response_time = stats.get("maxResTime", 0)
 
-        max_response_time = stats.get("Max", 0)
-
-        thread_metrics[thread_name] = {
+        transaction_metrics[transaction_name] = {
             "Max Response Time (ms)": max_response_time
         }
 
-    return thread_metrics
+    return transaction_metrics
 
 # Function to generate HTML report
 def generate_html_report(old_metrics, new_metrics, output_file):
     with open(output_file, 'w') as file:
         file.write("<html><head><title>JMeter Performance Report</title></head><body>")
-        file.write("<h1>JMeter Report - Threads with High Response Time</h1>")
-        file.write("<h2>Threads with Max Response Time > 300ms</h2>")
-        file.write("<table border='1'><tr><th>Thread Name</th><th>Old Max Response Time (ms)</th><th>New Max Response Time (ms)</th></tr>")
+        file.write("<h1>JMeter Report - Transactions with High Response Time</h1>")
+        file.write("<h2>Transactions with Max Response Time > 300ms</h2>")
+        file.write("<table border='1'><tr><th>Transaction Name</th><th>Old Max Response Time (ms)</th><th>New Max Response Time (ms)</th></tr>")
 
-        for thread_name, old_data in old_metrics.items():
-            new_data = new_metrics.get(thread_name, {"Max Response Time (ms)": "N/A"})
+        for transaction_name, old_data in old_metrics.items():
+            new_data = new_metrics.get(transaction_name, {"Max Response Time (ms)": "N/A"})
             if old_data["Max Response Time (ms)"] > 300 or (new_data["Max Response Time (ms)"] != "N/A" and new_data["Max Response Time (ms)"] > 300):
-                file.write(f"<tr><td>{thread_name}</td><td>{old_data['Max Response Time (ms)']}</td><td>{new_data['Max Response Time (ms)']}</td></tr>")
+                file.write(f"<tr><td>{transaction_name}</td><td>{old_data['Max Response Time (ms)']}</td><td>{new_data['Max Response Time (ms)']}</td></tr>")
 
         file.write("</table>")
         file.write("</body></html>")
