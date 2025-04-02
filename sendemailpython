@@ -1,0 +1,98 @@
+import json
+import argparse
+import smtplib
+import os
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Function to parse statistics.json
+def parse_statistics_json(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    thread_metrics = {}
+
+    for thread_name, stats in data.items():
+        max_response_time = stats.get("maxResTime", 0)
+        thread_metrics[thread_name] = {
+            "Max Response Time (ms)": max_response_time,
+            "Mean Response Time (ms)": stats.get("meanResTime", 0),
+            "Median Response Time (ms)": stats.get("medianResTime", 0),
+            "Throughput": stats.get("throughput", 0)
+        }
+
+    return thread_metrics
+
+# Function to compare JSON reports
+def compare_results(old_metrics, new_metrics):
+    differences = []
+    
+    for thread_name in old_metrics.keys():
+        if thread_name in new_metrics:
+            diff = f"<h3>{thread_name}</h3>"
+            for metric in old_metrics[thread_name]:
+                old_value = old_metrics[thread_name][metric]
+                new_value = new_metrics[thread_name][metric]
+                diff += f"<p>{metric}: <b>{old_value}</b> → <b>{new_value}</b></p>"
+            differences.append(diff)
+
+    return differences
+
+# Function to generate HTML report content
+def generate_html_content(comparison_data):
+    return f"""
+    <html>
+    <head><title>Performance Comparison Report</title></head>
+    <body>
+        <h1>JMeter Performance Report</h1>
+        {''.join(comparison_data)}
+    </body>
+    </html>
+    """
+
+# Function to send email with HTML content
+def send_email(html_content, to_email, from_email, smtp_server, smtp_port, smtp_user, smtp_password):
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = "JMeter Performance Report"
+
+    msg.attach(MIMEText(html_content, 'html'))
+
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_password)
+        server.sendmail(from_email, to_email, msg.as_string())
+        server.quit()
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+# Argument parser for command-line input
+parser = argparse.ArgumentParser(description="Compare two JMeter statistics.json files")
+parser.add_argument("--file1", required=True, help="Path to the first statistics.json file")
+parser.add_argument("--file2", required=True, help="Path to the second statistics.json file")
+parser.add_argument("--email", required=False, help="Email to send the report")
+
+args = parser.parse_args()
+
+# Read and compare JSON files
+old_metrics = parse_statistics_json(args.file1)
+new_metrics = parse_statistics_json(args.file2)
+comparison_data = compare_results(old_metrics, new_metrics)
+
+# Generate HTML report content
+html_report_content = generate_html_content(comparison_data)
+
+# Send Email if required
+if args.email:
+    send_email(
+        html_content=html_report_content,
+        to_email=args.email,
+        from_email="your-email@example.com",   # Change this
+        smtp_server="smtp.example.com",        # Change this (e.g., smtp.gmail.com)
+        smtp_port=587,
+        smtp_user="your-email@example.com",    # Change this
+        smtp_password="your-password"          # Change this
+    )
