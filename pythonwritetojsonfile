@@ -3,7 +3,7 @@ import argparse
 
 def extract_max_response_time(input_file, output_file):
     """
-    Reads a statistics.json file, extracts the maxResTime for each thread,
+    Reads statistics.json, extracts maxResTime for each thread,
     and writes it to a new JSON file (stat.json).
     """
     try:
@@ -11,14 +11,19 @@ def extract_max_response_time(input_file, output_file):
         with open(input_file, 'r') as file:
             data = json.load(file)
 
-        # Extract max response times
-        max_res_times = {thread_name: stats.get("maxResTime", 0) for thread_name, stats in data.items()}
+        # Dictionary to store extracted maxResTime values
+        max_res_times = {}
 
-        # Write to output JSON file
+        # Iterate through each thread's data
+        for thread_name, stats in data.items():
+            if isinstance(stats, dict) and "maxResTime" in stats:
+                max_res_times[thread_name] = stats["maxResTime"]
+
+        # Write extracted data to stat.json
         with open(output_file, 'w') as file:
             json.dump(max_res_times, file, indent=4)
 
-        print(f"Max response times written to {output_file}")
+        print(f"Max response times successfully written to {output_file}")
 
     except Exception as e:
         print(f"Error processing file: {e}")
