@@ -1,39 +1,37 @@
 import json
 import argparse
 
-def extract_max_response_time(input_file, output_file):
+def update_max_response_time(input_file, output_file):
     """
-    Reads statistics.json, extracts maxResTime for each thread,
-    and writes it to a new JSON file (stat.json).
+    Reads statistics.json, updates only maxResTime for each thread,
+    and writes the full JSON structure back to stat.json.
     """
     try:
         # Read the input JSON file
         with open(input_file, 'r') as file:
             data = json.load(file)
 
-        # Dictionary to store extracted maxResTime values
-        max_res_times = {}
-
         # Iterate through each thread's data
         for thread_name, stats in data.items():
             if isinstance(stats, dict) and "maxResTime" in stats:
-                max_res_times[thread_name] = stats["maxResTime"]
+                # Here, you can modify maxResTime if needed, for now, we keep it unchanged
+                stats["maxResTime"] = stats["maxResTime"]
 
-        # Write extracted data to stat.json
+        # Write updated JSON to output file (keeping the same structure)
         with open(output_file, 'w') as file:
-            json.dump(max_res_times, file, indent=4)
+            json.dump(data, file, indent=4)
 
-        print(f"Max response times successfully written to {output_file}")
+        print(f"Updated JSON written to {output_file}")
 
     except Exception as e:
         print(f"Error processing file: {e}")
 
 # Command-line argument parsing
-parser = argparse.ArgumentParser(description="Extract maxResTime from statistics.json and save to stat.json")
+parser = argparse.ArgumentParser(description="Update maxResTime in statistics.json and save to stat.json")
 parser.add_argument("--input", required=True, help="Path to the input statistics.json file")
 parser.add_argument("--output", default="stat.json", help="Path to the output JSON file (default: stat.json)")
 
 args = parser.parse_args()
 
-# Run the extraction process
-extract_max_response_time(args.input, args.output)
+# Run the update process
+update_max_response_time(args.input, args.output)
