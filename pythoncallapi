@@ -1,0 +1,28 @@
+import requests
+
+# === CONFIG ===
+api_url = "https://jsonplaceholder.typicode.com/users/1"  # Example API
+response_key = "username"  # The key you want to extract
+header_key = "authHeaderA"  # The key to use in header.properties
+output_file = "header.properties"
+
+# === CALL API ===
+try:
+    response = requests.get(api_url)
+    response.raise_for_status()
+    data = response.json()
+
+    # Extract the value
+    if response_key in data:
+        extracted_value = data[response_key]
+        print(f"Extracted: {response_key} = {extracted_value}")
+
+        # Write to header.properties
+        with open(output_file, "w") as f:
+            f.write(f"{header_key}={extracted_value}\n")
+        print(f"Wrote to {output_file}: {header_key}={extracted_value}")
+    else:
+        print(f"Key '{response_key}' not found in response.")
+
+except Exception as e:
+    print(f"Error occurred: {e}")
