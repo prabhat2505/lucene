@@ -1,28 +1,41 @@
 import requests
 
-# === CONFIG ===
-api_url = "https://jsonplaceholder.typicode.com/users/1"  # Example API
-response_key = "username"  # The key you want to extract
-header_key = "authHeaderA"  # The key to use in header.properties
-output_file = "header.properties"
+def fetch_token_and_write_header(
+    api_url: str,
+    query_params: dict,
+    form_data: dict,
+    response_key: str,
+    header_key: str,
+    output_file: str = "header.properties"
+):
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
 
-# === CALL API ===
-try:
-    response = requests.get(api_url)
-    response.raise_for_status()
-    data = response.json()
+    try:
+        response = requests.post(api_url, params=query_params, data=form_data, headers=headers)
+        response.raise_for_status()
+        json_data = response.json()
 
-    # Extract the value
-    if response_key in data:
-        extracted_value = data[response_key]
-        print(f"Extracted: {response_key} = {extracted_value}")
+        if response_key in json_data:
+            value = json_data[response_key]
+            with open(output_file, "w") as f:
+                f.write(f"{header_key}=Bearer {value}\n")
+            print(f"Success: {header_key}=Bearer {value} written to {output_file}")
+        else:
+            print(f"Key '{response_key}' not found in response.")
+    except Exception as e:
+        print(f"Error fetching token: {e}")
 
-        # Write to header.properties
-        with open(output_file, "w") as f:
-            f.write(f"{header_key}={extracted_value}\n")
-        print(f"Wrote to {output_file}: {header_key}={extracted_value}")
-    else:
-        print(f"Key '{response_key}' not found in response.")
 
-except Exception as e:
-    print(f"Error occurred: {e}")
+fetch_token_and_write_header(
+    api_url="https://example.com/api/token",
+    query_params={"client_id": "abc"},
+    form_data={
+        "username": "myuser",
+        "password": "mypassword",
+        "grant_type": "password"
+    },
+    response_key="access_token",
+    header_key="authHeaderA"
+)
