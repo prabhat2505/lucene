@@ -1,0 +1,7 @@
+def read_all_properties(file_path):
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                print(f"{key.strip()} = {value.strip()}")
