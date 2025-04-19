@@ -1,7 +1,20 @@
-def read_all_properties(file_path):
+def update_property(file_path, key_to_update, new_value):
+    properties = {}
+
+    # Read existing properties
     with open(file_path, "r") as f:
         for line in f:
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
                 key, value = line.split("=", 1)
-                print(f"{key.strip()} = {value.strip()}")
+                properties[key.strip()] = value.strip()
+
+    # Update only the specified key
+    properties[key_to_update] = new_value
+
+    # Write everything back
+    with open(file_path, "w") as f:
+        for key, value in properties.items():
+            f.write(f"{key}={value}\n")
+
+    print(f"Updated '{key_to_update}' with new value in {file_path}")
