@@ -73,3 +73,23 @@ with open('your_file.csv', 'rb') as f:
     raw_data = f.read(10000)
     result = chardet.detect(raw_data)
     print(result)  # e.g., {'encoding': 'ISO-8859-1', 'confidence': 0.73
+
+
+
+
+def read_csv_file_in_chunks(file_path, chunk_size):
+    """Reads a CSV file in chunks."""
+    return pd.read_csv(file_path, chunksize=chunk_size)
+
+def insert_data_into_oracle(conn, table_name, chunk):
+    """Inserts a chunk of data into the Oracle table."""
+    with conn.cursor() as cursor:
+        cols = ', '.join(chunk.columns)
+        placeholders = ', '.join([f':{i+1}' for i in range(len(chunk.columns))])
+        insert_sql = f"INSERT INTO {table_name} ({cols}) VALUES ({placeholders})"
+
+        data = [tuple(row) for row in chunk.itertuples(index=False, name=None)]
+
+        cursor.executemany(insert_sql, data)
+        conn.commit()
+        print(f"✅ Inserted {len(data)} rows")
