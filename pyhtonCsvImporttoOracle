@@ -1,1 +1,43 @@
+import cx_Oracle
+import pandas as pd
+
+# Configuration
+username = 'your_username'
+password = 'your_password'
+dsn = 'your_host:your_port/your_service_name'  # Example: 'localhost:1521/orcl'
+table_name = 'your_table_name'
+csv_file_path = 'data.csv'  # Path to your CSV file
+
+try:
+    # Read CSV into DataFrame
+    df = pd.read_csv(csv_file_path)
+
+    # Establish connection
+    connection = cx_Oracle.connect(user=username, password=password, dsn=dsn)
+    cursor = connection.cursor()
+
+    # Prepare the insert statement dynamically based on DataFrame columns
+    cols = ', '.join(df.columns)
+    placeholders = ', '.join([f':{i+1}' for i in range(len(df.columns))])
+    insert_sql = f"INSERT INTO {table_name} ({cols}) VALUES ({placeholders})"
+
+    # Convert DataFrame to list of tuples
+    data = [tuple(row) for row in df.itertuples(index=False, name=None)]
+
+    # Execute batch insert
+    cursor.executemany(insert_sql, data)
+
+    # Commit
+    connection.commit()
+
+    print(f"{cursor.rowcount} rows inserted successfully.")
+
+except Exception as e:
+    print("Error:", e)
+
+finally:
+    if cursor:
+        cursor.close()
+    if connection:
+        connection.close()
 
