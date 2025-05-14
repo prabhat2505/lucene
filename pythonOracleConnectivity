@@ -1,0 +1,26 @@
+import cx_Oracle
+
+# Configuration
+username = 'your_username'
+password = 'your_password'
+dsn = 'your_host:your_port/your_service_name'  # e.g., 'localhost:1521/orclpdb1'
+
+try:
+    # Try to establish a connection
+    connection = cx_Oracle.connect(user=username, password=password, dsn=dsn)
+    
+    # If successful, print connection details
+    print("✅ Connected to Oracle DB successfully!")
+    print("Oracle version:", connection.version)
+
+except cx_Oracle.DatabaseError as e:
+    # Print error message if connection fails
+    error, = e.args
+    print("❌ Failed to connect to Oracle DB.")
+    print("Error:", error.message)
+
+finally:
+    # Always close the connection if it was opened
+    if 'connection' in locals() and connection:
+        connection.close()
+        print("🔌 Connection closed.")
