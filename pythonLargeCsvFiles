@@ -59,3 +59,9 @@ batch_size = 5                     # Small chunk size for demonstration
 
 # Call the test function
 read_csv_file_in_chunks(csv_file_path, batch_size)
+
+
+
+    with open(file_path, 'rb') as f:  # open in binary mode
+        # decode using ISO-8859-1, replace bad characters with �
+        text_stream = io.TextIOWrapper(f, encoding='ISO-8859-1', errors='replace')
