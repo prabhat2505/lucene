@@ -93,3 +93,7 @@ def insert_data_into_oracle(conn, table_name, chunk):
         cursor.executemany(insert_sql, data)
         conn.commit()
         print(f"✅ Inserted {len(data)} rows")
+
+
+        for chunk in read_csv_file_in_chunks(csv_file_path, batch_size):
+            insert_data_into_oracle(conn, table_name, chunk, success_count, error_count)
