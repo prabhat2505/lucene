@@ -1,0 +1,38 @@
+import pandas as pd
+import oracledb
+
+# Configurations
+csv_file_path = "large_file.csv"  # Path to your CSV
+table_name = "your_table_name"
+username = "your_username"
+password = "your_password"
+dsn = "your_host:your_port/your_service_name"  # e.g., localhost:1521/orclpdb1
+batch_size = 1000  # Adjust based on your memory/DB load
+
+# Initialize thick mode
+oracledb.init_oracle_client(lib_dir="/path/to/instantclient")
+
+try:
+    # Connect to Oracle using thick mode
+    with oracledb.connect(user=username, password=password, dsn=dsn) as conn:
+        with conn.cursor() as cursor:
+
+            # Read the CSV in chunks
+            for chunk in pd.read_csv(csv_file_path, chunksize=batch_size):
+                # Dynamically generate insert SQL
+                cols = ', '.join(chunk.columns)
+                placeholders = ', '.join([f':{i+1}' for i in range(len(chunk.columns))])
+                insert_sql = f"INSERT INTO {table_name} ({cols}) VALUES ({placeholders})"
+
+                # Convert DataFrame chunk to list of tuples
+                data = [tuple(row) for row in chunk.itertuples(index=False, name=None)]
+
+                # Execute batch insert
+                cursor.executemany(insert_sql, data)
+                conn.commit()
+                print(f"✅ Inserted {len(data)} rows")
+
+    print("🎉 All data inserted successfully.")
+
+except Exception as e:
+    print("❌ Error occurred:", e)
